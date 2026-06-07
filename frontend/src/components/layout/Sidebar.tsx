@@ -1,47 +1,99 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import {
+  Coffee,
+  LayoutDashboard,
+  UtensilsCrossed,
+  Tag,
+  TableProperties,
+  ShoppingBag,
+  Users,
+  BarChart3,
+  LogOut,
+  Sun,
+  Moon,
+} from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
+import { useThemeStore } from '../../store/themeStore'
 import { PermissionGate } from '../shared/PermissionGate'
 
 const navItems = [
-  { label: 'Dashboard', href: '/dashboard', permission: null },
-  { label: 'Menu', href: '/dashboard/menu', permission: 'menu:read' },
-  { label: 'Kategori', href: '/dashboard/categories', permission: 'category:read' },
-  { label: 'Meja', href: '/dashboard/tables', permission: 'table:read' },
-  { label: 'Pesanan', href: '/dashboard/orders', permission: 'order:read' },
-  { label: 'Pengguna', href: '/dashboard/users', permission: 'user:read' },
-  { label: 'Laporan', href: '/dashboard/reports', permission: 'report:read' },
+  { label: 'Dashboard',  href: '/dashboard',            permission: null,             icon: LayoutDashboard },
+  { label: 'Menu',       href: '/dashboard/menu',        permission: 'menu:read',      icon: UtensilsCrossed },
+  { label: 'Kategori',   href: '/dashboard/categories',  permission: 'category:read',  icon: Tag },
+  { label: 'Meja',       href: '/dashboard/tables',      permission: 'table:read',     icon: TableProperties },
+  { label: 'Pesanan',    href: '/dashboard/orders',      permission: 'order:read',     icon: ShoppingBag },
+  { label: 'Pengguna',   href: '/dashboard/users',       permission: 'user:read',      icon: Users },
+  { label: 'Laporan',    href: '/dashboard/reports',     permission: 'report:read',    icon: BarChart3 },
 ]
 
 export default function Sidebar() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
+
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
-    <aside className="w-56 min-h-screen bg-white border-r flex flex-col">
-      <div className="p-5 border-b">
-        <p className="font-bold text-lg">ThomsCafe</p>
-        <p className="text-xs text-gray-500 mt-0.5">{user?.role}</p>
+    <aside
+      className="w-60 min-h-screen flex flex-col flex-shrink-0 transition-colors duration-200"
+      style={{ background: 'var(--bg-sidebar)', borderRight: '1px solid var(--sidebar-border)' }}
+    >
+      {/* Logo */}
+      <div className="px-5 py-6 flex items-center gap-3" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: '#0d1b2e', boxShadow: '0 0 12px rgba(0,200,255,0.2)' }}
+        >
+          <Coffee size={17} style={{ color: '#00c8ff' }} />
+        </div>
+        <div>
+          <p className="font-black text-sm leading-tight" style={{ color: 'var(--text-primary)' }}>ThomsCafe</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>POS System</p>
+        </div>
       </div>
 
-      <nav className="flex-1 p-3 flex flex-col gap-1">
+      {/* Nav */}
+      <nav className="flex-1 p-3 flex flex-col gap-0.5 mt-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest px-3 mb-2" style={{ color: 'var(--text-muted)' }}>
+          Menu
+        </p>
+
         {navItems.map((item) => {
           const isActive = pathname === item.href
+          const Icon = item.icon
+
           const link = (
             <Link
               key={item.href}
               to={item.href}
-              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={
                 isActive
-                  ? 'bg-gray-900 text-white font-medium'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+                  ? {
+                      background: 'var(--nav-active-bg)',
+                      color: 'var(--nav-active-text)',
+                      border: '1px solid var(--nav-active-border)',
+                      fontWeight: 600,
+                    }
+                  : { color: 'var(--nav-text)', border: '1px solid transparent' }
+              }
             >
+              <Icon size={16} />
               {item.label}
+              {isActive && (
+                <span
+                  className="ml-auto w-1.5 h-1.5 rounded-full"
+                  style={{ background: 'var(--accent)' }}
+                />
+              )}
             </Link>
           )
 
           if (!item.permission) return link
-
           return (
             <PermissionGate key={item.href} permission={item.permission}>
               {link}
@@ -50,15 +102,48 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-3 border-t">
-        <div className="px-3 py-2 mb-1">
-          <p className="text-sm font-medium truncate">{user?.name}</p>
-          <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-        </div>
+      {/* Bottom */}
+      <div className="p-3" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+        {/* Theme toggle */}
         <button
-          onClick={logout}
-          className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-1"
+          style={{ color: 'var(--text-secondary)', background: 'var(--accent-dim)', border: '1px solid var(--accent-border)' }}
         >
+          {theme === 'dark' ? <Sun size={15} style={{ color: 'var(--accent)' }} /> : <Moon size={15} style={{ color: 'var(--accent)' }} />}
+          <span style={{ color: 'var(--accent-text)' }}>
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </span>
+        </button>
+
+        {/* User info */}
+        <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+            style={{ background: '#0d1b2e', color: '#00c8ff', border: '1px solid rgba(0,200,255,0.3)' }}
+          >
+            {user?.name?.charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{user?.name}</p>
+            <span
+              className="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-md"
+              style={{ background: 'var(--accent-dim)', color: 'var(--accent-text)', border: '1px solid var(--accent-border)' }}
+            >
+              {user?.role}
+            </span>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all"
+          style={{ color: 'var(--text-muted)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent' }}
+        >
+          <LogOut size={15} />
           Keluar
         </button>
       </div>
