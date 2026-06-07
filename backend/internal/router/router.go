@@ -4,6 +4,9 @@ import (
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
+	"pos-cafe/internal/handler"
+	"pos-cafe/internal/middleware"
+	"pos-cafe/internal/repository"
 )
 
 func Setup(db *sql.DB) *gin.Engine {
@@ -13,14 +16,17 @@ func Setup(db *sql.DB) *gin.Engine {
 
 	api := r.Group("/api/v1")
 
-	// Public routes (no auth required)
-	public := api.Group("")
-	_ = public
+	authRepo := repository.NewAuthRepository(db)
+	authHandler := handler.NewAuthHandler(authRepo)
 
-	// Protected routes (auth required)
+	// Public routes
+	public := api.Group("")
+	public.POST("/auth/login", authHandler.Login)
+
+	// Protected routes
 	protected := api.Group("")
-	protected.Use(authMiddleware())
-	_ = protected
+	protected.Use(middleware.AuthMiddleware())
+	protected.GET("/auth/me", authHandler.Me)
 
 	return r
 }
@@ -34,13 +40,6 @@ func corsMiddleware() gin.HandlerFunc {
 			c.AbortWithStatus(204)
 			return
 		}
-		c.Next()
-	}
-}
-
-func authMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// JWT validation — implemented in Phase 2
 		c.Next()
 	}
 }
