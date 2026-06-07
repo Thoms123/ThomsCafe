@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
+	"pos-cafe/db/seed"
 	"pos-cafe/internal/config"
 	"pos-cafe/internal/router"
 )
@@ -19,10 +21,21 @@ func main() {
 	}
 	defer db.Close()
 
+	if err := config.RunMigrations(db); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
+	seed.Run(db)
+
 	r := router.Setup(db)
 
-	log.Println("Server running on :8080")
-	if err := r.Run(":8080"); err != nil {
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server running on :%s", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
