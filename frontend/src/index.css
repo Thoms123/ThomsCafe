@@ -1,34 +1,82 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222.2 84% 4.9%);
-  --color-primary: hsl(221.2 83.2% 53.3%);
-  --color-primary-foreground: hsl(210 40% 98%);
-  --color-secondary: hsl(210 40% 96.1%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --color-accent: hsl(210 40% 96.1%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(221.2 83.2% 53.3%);
-  --color-success: hsl(142.1 76.2% 36.3%);
-  --color-warning: hsl(47.9 95.8% 53.1%);
-  --radius: 0.5rem;
+/* ── Electric Blue — Light Mode (default) ── */
+:root {
+  --bg-app:              #f0f9ff;
+  --bg-sidebar:          #ffffff;
+  --bg-card:             #ffffff;
+  --border:              #bae6fd;
+  --sidebar-border:      #e0f2fe;
+  --text-primary:        #0d1b2e;
+  --text-secondary:      #475569;
+  --text-muted:          #94a3b8;
+  --accent:              #00c8ff;
+  --accent-dim:          #e0f9ff;
+  --accent-border:       #bae6fd;
+  --accent-text:         #0088aa;
+  --nav-active-bg:       #e0f9ff;
+  --nav-active-text:     #0088aa;
+  --nav-active-border:   #bae6fd;
+  --nav-text:            #475569;
+  --card-shadow:         0 2px 12px rgba(0,100,180,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  --input-bg:            #f0f9ff;
+  --input-border:        #b8ddf5;
+  --hero-bg:             linear-gradient(135deg, #0d1b2e 0%, #0a3d5e 55%, #005580 100%);
+  --radius:              0.75rem;
+
+  /* keep shadcn tokens working */
+  --color-background:    #f0f9ff;
+  --color-foreground:    #0d1b2e;
+  --color-primary:       #00c8ff;
+  --color-primary-foreground: #0d1b2e;
+  --color-border:        #bae6fd;
+  --color-input:         #b8ddf5;
+  --color-ring:          #00c8ff;
+  --color-muted:         #e0f9ff;
+  --color-muted-foreground: #64748b;
+}
+
+/* ── Electric Blue — Dark Mode ── */
+.dark {
+  --bg-app:              #0f1e30;
+  --bg-sidebar:          #0d1b2e;
+  --bg-card:             #162840;
+  --border:              rgba(0,200,255,0.12);
+  --sidebar-border:      rgba(0,200,255,0.08);
+  --text-primary:        #e0f7ff;
+  --text-secondary:      rgba(224,247,255,0.6);
+  --text-muted:          rgba(224,247,255,0.35);
+  --accent:              #00c8ff;
+  --accent-dim:          rgba(0,200,255,0.12);
+  --accent-border:       rgba(0,200,255,0.3);
+  --accent-text:         #00c8ff;
+  --nav-active-bg:       rgba(0,200,255,0.15);
+  --nav-active-text:     #00c8ff;
+  --nav-active-border:   rgba(0,200,255,0.3);
+  --nav-text:            rgba(224,247,255,0.45);
+  --card-shadow:         0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.03);
+  --input-bg:            rgba(0,200,255,0.05);
+  --input-border:        rgba(0,200,255,0.2);
+  --hero-bg:             linear-gradient(135deg, #0d1b2e 0%, #0a3d5e 55%, #005580 100%);
+
+  --color-background:    #0f1e30;
+  --color-foreground:    #e0f7ff;
+  --color-primary:       #00c8ff;
+  --color-primary-foreground: #0d1b2e;
+  --color-border:        rgba(0,200,255,0.12);
+  --color-input:         rgba(0,200,255,0.2);
+  --color-ring:          #00c8ff;
+  --color-muted:         #162840;
+  --color-muted-foreground: rgba(224,247,255,0.45);
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
+  * { border-color: var(--border); }
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    transition: background-color 0.2s, color 0.2s;
   }
 }
