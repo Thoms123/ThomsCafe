@@ -1,29 +1,29 @@
 package handler
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"mime/multipart"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
 	"pos-cafe/internal/repository"
 	"pos-cafe/pkg/response"
 )
 
 type MenuHandler struct {
-	repo       *repository.MenuRepository
-	uploadDir  string
-	uploadBase string
+	repo *repository.MenuRepository
+	cld  *cloudinary.Cloudinary
 }
 
-func NewMenuHandler(repo *repository.MenuRepository, uploadDir, uploadBase string) *MenuHandler {
-	return &MenuHandler{repo: repo, uploadDir: uploadDir, uploadBase: uploadBase}
+func NewMenuHandler(repo *repository.MenuRepository, cld *cloudinary.Cloudinary) *MenuHandler {
+	return &MenuHandler{repo: repo, cld: cld}
 }
 
 func (h *MenuHandler) List(c *gin.Context) {
@@ -68,18 +68,18 @@ func (h *MenuHandler) Create(c *gin.Context) {
 		return
 	}
 
-	imagePath := ""
+	imageURL := ""
 	file, fh, err := c.Request.FormFile("image")
 	if err == nil {
 		defer file.Close()
-		imagePath, err = h.saveImage(file, fh)
+		imageURL, err = h.uploadImage(file, fh)
 		if err != nil {
-			response.InternalError(c, "Failed to save image")
+			response.InternalError(c, "Failed to upload image")
 			return
 		}
 	}
 
-	menu, err := h.repo.Create(name, price, imagePath, catID)
+	menu, err := h.repo.Create(name, price, imageURL, catID)
 	if err != nil {
 		response.InternalError(c, "Failed to create menu")
 		return
@@ -120,23 +120,20 @@ func (h *MenuHandler) Update(c *gin.Context) {
 		}
 	}
 
-	imagePath := existing.Image
+	imageURL := existing.Image
 	file, fh, err := c.Request.FormFile("image")
 	if err == nil {
 		defer file.Close()
-		newPath, saveErr := h.saveImage(file, fh)
-		if saveErr != nil {
-			response.InternalError(c, "Failed to save image")
+		newURL, uploadErr := h.uploadImage(file, fh)
+		if uploadErr != nil {
+			response.InternalError(c, "Failed to upload image")
 			return
 		}
-		// remove old image
-		if existing.Image != "" {
-			_ = os.Remove(filepath.Join(h.uploadDir, filepath.Base(existing.Image)))
-		}
-		imagePath = newPath
+		h.deleteImage(existing.Image)
+		imageURL = newURL
 	}
 
-	menu, err := h.repo.Update(id, name, price, imagePath, catID)
+	menu, err := h.repo.Update(id, name, price, imageURL, catID)
 	if err != nil {
 		response.InternalError(c, "Failed to update menu")
 		return
@@ -174,13 +171,13 @@ func (h *MenuHandler) Delete(c *gin.Context) {
 		response.NotFound(c, "Menu not found")
 		return
 	}
-	if existing != nil && existing.Image != "" {
-		_ = os.Remove(filepath.Join(h.uploadDir, filepath.Base(existing.Image)))
+	if existing != nil {
+		h.deleteImage(existing.Image)
 	}
 	response.OK(c, "Menu deleted", nil)
 }
 
-func (h *MenuHandler) saveImage(file multipart.File, fh *multipart.FileHeader) (string, error) {
+func (h *MenuHandler) uploadImage(file multipart.File, fh *multipart.FileHeader) (string, error) {
 	ext := strings.ToLower(filepath.Ext(fh.Filename))
 	allowed := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
 	if !allowed[ext] {
@@ -191,21 +188,43 @@ func (h *MenuHandler) saveImage(file multipart.File, fh *multipart.FileHeader) (
 	if _, err := rand.Read(b); err != nil {
 		return "", err
 	}
-	filename := hex.EncodeToString(b) + ext
+	publicID := "thomscafe/menus/" + hex.EncodeToString(b)
 
-	if err := os.MkdirAll(h.uploadDir, 0755); err != nil {
-		return "", err
-	}
-
-	dst, err := os.Create(filepath.Join(h.uploadDir, filename))
+	resp, err := h.cld.Upload.Upload(context.Background(), file, uploader.UploadParams{
+		PublicID:     publicID,
+		ResourceType: "image",
+	})
 	if err != nil {
 		return "", err
 	}
-	defer dst.Close()
+	return resp.SecureURL, nil
+}
 
-	if _, err := io.Copy(dst, file); err != nil {
-		return "", err
+func (h *MenuHandler) deleteImage(imageURL string) {
+	if imageURL == "" {
+		return
 	}
-
-	return h.uploadBase + "/" + filename, nil
+	// Extract public_id from URL: everything after /upload/ (strip version prefix and extension)
+	idx := strings.Index(imageURL, "/upload/")
+	if idx == -1 {
+		return
+	}
+	publicID := imageURL[idx+len("/upload/"):]
+	// Strip version segment if present (e.g. "v1234567890/")
+	if len(publicID) > 1 && publicID[0] == 'v' {
+		for i := 1; i < len(publicID); i++ {
+			if publicID[i] == '/' {
+				publicID = publicID[i+1:]
+				break
+			}
+			if publicID[i] < '0' || publicID[i] > '9' {
+				break
+			}
+		}
+	}
+	// Strip file extension
+	if dot := strings.LastIndex(publicID, "."); dot != -1 {
+		publicID = publicID[:dot]
+	}
+	_, _ = h.cld.Upload.Destroy(context.Background(), uploader.DestroyParams{PublicID: publicID})
 }
