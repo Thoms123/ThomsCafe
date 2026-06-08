@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Theme: Electric Blue + Black</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .neon { box-shadow: 0 0 20px rgba(0,200,255,0.4), 0 0 40px rgba(0,200,255,0.15); }
+    .neon-text { text-shadow: 0 0 20px rgba(0,200,255,0.6); }
+  </style>
+</head>
+<body>
+<div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex bg-black/40 backdrop-blur-md rounded-full p-1 gap-1" style="border: 1px solid rgba(0,200,255,0.2)">
+  <button onclick="show('login')" id="btn-login" class="px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-white/20">Login</button>
+  <button onclick="show('dashboard')" id="btn-dashboard" class="px-4 py-1.5 rounded-full text-sm font-semibold text-white/60">Dashboard</button>
+  <a href="index.html" class="px-4 py-1.5 rounded-full text-sm font-semibold text-white/60 hover:text-white">← Back</a>
+</div>
+
+<!-- LOGIN -->
+<div id="view-login" class="min-h-screen flex" style="background: #050a0f">
+  <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col items-center justify-center p-12 text-white" style="background: linear-gradient(135deg, #050a0f 0%, #0a1628 60%, #00102a 100%)">
+    <div class="absolute top-0 left-0 right-0 bottom-0" style="background: radial-gradient(circle at 70% 40%, rgba(0,200,255,0.08) 0%, transparent 60%)"></div>
+    <div class="absolute" style="top: -40px; right: -40px; width: 300px; height: 300px; background: rgba(0,200,255,0.05); border-radius: 50%; filter: blur(60px)"></div>
+    <div class="relative z-10 text-center">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-6 text-4xl neon" style="background: rgba(0,200,255,0.1); border: 1px solid rgba(0,200,255,0.3)">☕</div>
+      <h1 class="text-5xl font-black tracking-tight mb-3 neon-text" style="color: #00c8ff">ThomsCafe</h1>
+      <p class="text-white/60 text-lg font-medium">Point of Sale Dashboard</p>
+      <div class="mt-10 flex flex-col gap-3 text-left max-w-xs mx-auto">
+        <div class="flex items-center gap-3 rounded-xl px-4 py-3" style="background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.15)">
+          <div class="w-2 h-2 rounded-full flex-shrink-0" style="background: #00c8ff; box-shadow: 0 0 8px #00c8ff"></div>
+          <span class="text-sm font-medium text-white/80">Kelola menu & kategori</span>
+        </div>
+        <div class="flex items-center gap-3 rounded-xl px-4 py-3" style="background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.15)">
+          <div class="w-2 h-2 rounded-full flex-shrink-0" style="background: #00c8ff; box-shadow: 0 0 8px #00c8ff"></div>
+          <span class="text-sm font-medium text-white/80">Monitor pesanan real-time</span>
+        </div>
+        <div class="flex items-center gap-3 rounded-xl px-4 py-3" style="background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.15)">
+          <div class="w-2 h-2 rounded-full flex-shrink-0" style="background: #00c8ff; box-shadow: 0 0 8px #00c8ff"></div>
+          <span class="text-sm font-medium text-white/80">Laporan penjualan</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="flex-1 flex items-center justify-center p-6" style="background: #050a0f">
+    <div class="w-full max-w-md">
+      <div class="rounded-3xl p-8" style="background: #0a1628; border: 1px solid rgba(0,200,255,0.15); box-shadow: 0 20px 60px rgba(0,0,0,0.5)">
+        <div class="mb-8">
+          <h2 class="text-2xl font-black text-white">Selamat datang! 👋</h2>
+          <p class="text-sm mt-1" style="color: rgba(255,255,255,0.4)">Masuk ke dashboard ThomsCafe</p>
+        </div>
+        <div class="flex flex-col gap-5">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" style="color: rgba(255,255,255,0.7)">Email</label>
+            <input type="email" value="owner@thomscafe.com" class="w-full px-4 py-3 rounded-xl text-sm outline-none text-white transition-all" style="background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.2); color: white" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold" style="color: rgba(255,255,255,0.7)">Password</label>
+            <input type="password" value="owner123" class="w-full px-4 py-3 rounded-xl text-sm outline-none text-white transition-all" style="background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.2)" />
+          </div>
+          <button onclick="show('dashboard')" class="w-full py-3 rounded-xl font-bold text-black transition-all active:scale-95 mt-1 neon" style="background: #00c8ff; color: #050a0f">
+            Masuk →
+          </button>
+        </div>
+      </div>
+      <p class="text-center text-xs mt-6" style="color: rgba(255,255,255,0.2)">ThomsCafe POS © 2026</p>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="view-dashboard" class="hidden min-h-screen flex" style="background: #080d14">
+  <aside class="w-60 min-h-screen flex flex-col flex-shrink-0" style="background: #050a0f; border-right: 1px solid rgba(0,200,255,0.1)">
+    <div class="px-5 py-6 flex items-center gap-3" style="border-bottom: 1px solid rgba(0,200,255,0.08)">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black neon" style="background: rgba(0,200,255,0.15); border: 1px solid rgba(0,200,255,0.3); color: #00c8ff">☕</div>
+      <div>
+        <p class="font-black text-sm leading-tight neon-text" style="color: #00c8ff">ThomsCafe</p>
+        <p class="text-xs" style="color: rgba(255,255,255,0.25)">POS System</p>
+      </div>
+    </div>
+    <nav class="flex-1 p-3 flex flex-col gap-0.5 mt-2">
+      <p class="text-[10px] font-bold uppercase tracking-widest px-3 mb-2" style="color: rgba(255,255,255,0.2)">Menu</p>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold neon" style="background: rgba(0,200,255,0.12); border: 1px solid rgba(0,200,255,0.25); color: #00c8ff">
+        <span>⊞</span> Dashboard <span class="ml-auto w-1.5 h-1.5 rounded-full" style="background: #00c8ff; box-shadow: 0 0 6px #00c8ff"></span>
+      </a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium" style="color: rgba(255,255,255,0.35)"><span>🍽</span> Menu</a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium" style="color: rgba(255,255,255,0.35)"><span>🏷</span> Kategori</a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium" style="color: rgba(255,255,255,0.35)"><span>🪑</span> Meja</a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium" style="color: rgba(255,255,255,0.35)"><span>🛍</span> Pesanan</a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium" style="color: rgba(255,255,255,0.35)"><span>👥</span> Pengguna</a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium" style="color: rgba(255,255,255,0.35)"><span>📊</span> Laporan</a>
+    </nav>
+    <div class="p-3" style="border-top: 1px solid rgba(0,200,255,0.08)">
+      <div class="flex items-center gap-3 px-3 py-2.5 mb-1">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style="background: rgba(0,200,255,0.15); border: 1px solid rgba(0,200,255,0.3); color: #00c8ff">O</div>
+        <div>
+          <p class="text-white text-sm font-semibold">Owner</p>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style="background: rgba(0,200,255,0.15); color: #00c8ff">Owner</span>
+        </div>
+      </div>
+      <button onclick="show('login')" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm" style="color: rgba(255,255,255,0.25)">← Keluar</button>
+    </div>
+  </aside>
+  <main class="flex-1 p-8 flex flex-col gap-6">
+    <div class="rounded-3xl p-7 text-white relative overflow-hidden" style="background: linear-gradient(135deg, #050a0f 0%, #001a2e 60%, #003344 100%); border: 1px solid rgba(0,200,255,0.15); box-shadow: 0 20px 60px rgba(0,0,0,0.4)">
+      <div class="absolute" style="top:-40px; right:-40px; width:220px; height:220px; background: rgba(0,200,255,0.08); border-radius: 50%; filter: blur(40px)"></div>
+      <div class="relative z-10">
+        <p class="text-sm font-medium mb-1" style="color: rgba(255,255,255,0.5)">Selamat datang kembali 👋</p>
+        <h1 class="text-3xl font-black tracking-tight neon-text" style="color: #00c8ff">Owner</h1>
+        <span class="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full" style="background: rgba(0,200,255,0.1); border: 1px solid rgba(0,200,255,0.25); color: #00c8ff">Owner</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-4 gap-4">
+      <div class="rounded-2xl p-5" style="background: #0a1628; border: 1px solid rgba(0,200,255,0.1)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-lg" style="background: rgba(0,200,255,0.08)">🛍</div>
+        <p class="text-2xl font-black text-white">24</p>
+        <p class="text-xs font-medium mt-0.5" style="color: rgba(255,255,255,0.4)">Total Pesanan</p>
+      </div>
+      <div class="rounded-2xl p-5" style="background: #0a1628; border: 1px solid rgba(0,200,255,0.1)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-lg" style="background: rgba(0,200,255,0.08)">🍽</div>
+        <p class="text-2xl font-black text-white">12</p>
+        <p class="text-xs font-medium mt-0.5" style="color: rgba(255,255,255,0.4)">Item Menu</p>
+      </div>
+      <div class="rounded-2xl p-5" style="background: #0a1628; border: 1px solid rgba(0,200,255,0.1)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-lg" style="background: rgba(0,200,255,0.08)">🪑</div>
+        <p class="text-2xl font-black text-white">8</p>
+        <p class="text-xs font-medium mt-0.5" style="color: rgba(255,255,255,0.4)">Meja Aktif</p>
+      </div>
+      <div class="rounded-2xl p-5" style="background: #0a1628; border: 1px solid rgba(0,200,255,0.1)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-lg" style="background: rgba(0,200,255,0.08)">📈</div>
+        <p class="text-2xl font-black text-white">Rp 1.2jt</p>
+        <p class="text-xs font-medium mt-0.5" style="color: rgba(255,255,255,0.4)">Pendapatan</p>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+  function show(v) {
+    ['login','dashboard'].forEach(x => document.getElementById('view-'+x).classList.add('hidden'))
+    document.getElementById('view-'+v).classList.remove('hidden')
+    document.getElementById('btn-login').className = v==='login' ? 'px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-white/20' : 'px-4 py-1.5 rounded-full text-sm font-semibold text-white/60'
+    document.getElementById('btn-dashboard').className = v==='dashboard' ? 'px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-white/20' : 'px-4 py-1.5 rounded-full text-sm font-semibold text-white/60'
+  }
+</script>
+</body>
+</html>

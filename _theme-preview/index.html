@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThomsCafe — Theme Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .theme-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .theme-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+  </style>
+</head>
+<body class="bg-gray-100 p-8">
+
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-black text-gray-800">ThomsCafe — Theme Preview</h1>
+      <p class="text-gray-500 mt-2">Klik salah satu untuk preview fullscreen</p>
+    </div>
+
+    <div class="mb-4"><p class="text-sm font-bold text-gray-400 uppercase tracking-widest">Batch 1</p></div>
+    <div class="grid grid-cols-2 gap-6">
+
+      <!-- Theme 1: Teal + Orange -->
+      <a href="theme-teal-orange.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-teal-400">
+        <div class="flex h-64">
+          <!-- Sidebar preview -->
+          <div class="w-16 bg-teal-900 flex flex-col items-center py-4 gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-400 flex items-center justify-center text-white text-xs font-black">T</div>
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/80"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+          </div>
+          <!-- Content preview -->
+          <div class="flex-1 bg-slate-50 p-4 flex flex-col gap-3">
+            <!-- Hero card -->
+            <div class="rounded-xl bg-gradient-to-r from-teal-500 via-cyan-500 to-orange-400 p-4 text-white">
+              <p class="text-xs text-white/70">Selamat datang 👋</p>
+              <p class="font-black text-lg">Owner</p>
+            </div>
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-teal-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-teal-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">24</p>
+                  <p class="text-[9px] text-gray-400">Pesanan</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-orange-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-orange-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">12</p>
+                  <p class="text-[9px] text-gray-400">Menu</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between">
+          <div>
+            <p class="font-bold text-gray-800">Teal + Orange</p>
+            <p class="text-xs text-gray-400">Fresh, tropical, energetic</p>
+          </div>
+          <div class="flex gap-1.5">
+            <div class="w-5 h-5 rounded-full bg-teal-500"></div>
+            <div class="w-5 h-5 rounded-full bg-cyan-400"></div>
+            <div class="w-5 h-5 rounded-full bg-orange-400"></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Theme 2: Indigo + Lime -->
+      <a href="theme-indigo-lime.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-indigo-400">
+        <div class="flex h-64">
+          <div class="w-16 bg-indigo-950 flex flex-col items-center py-4 gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-400 to-blue-400 flex items-center justify-center text-white text-xs font-black">T</div>
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/80"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+          </div>
+          <div class="flex-1 bg-slate-50 p-4 flex flex-col gap-3">
+            <div class="rounded-xl bg-gradient-to-r from-indigo-600 via-blue-500 to-sky-400 p-4 text-white">
+              <p class="text-xs text-white/70">Selamat datang 👋</p>
+              <p class="font-black text-lg">Owner</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-indigo-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">24</p>
+                  <p class="text-[9px] text-gray-400">Pesanan</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-lime-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-lime-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">12</p>
+                  <p class="text-[9px] text-gray-400">Menu</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between">
+          <div>
+            <p class="font-bold text-gray-800">Indigo + Lime</p>
+            <p class="text-xs text-gray-400">Bold, techy, youthful</p>
+          </div>
+          <div class="flex gap-1.5">
+            <div class="w-5 h-5 rounded-full bg-indigo-500"></div>
+            <div class="w-5 h-5 rounded-full bg-blue-400"></div>
+            <div class="w-5 h-5 rounded-full bg-lime-400"></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Theme 3: Slate + Emerald -->
+      <a href="theme-slate-emerald.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-emerald-400">
+        <div class="flex h-64">
+          <div class="w-16 bg-slate-900 flex flex-col items-center py-4 gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-400 flex items-center justify-center text-white text-xs font-black">T</div>
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/80"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+          </div>
+          <div class="flex-1 bg-gray-50 p-4 flex flex-col gap-3">
+            <div class="rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-4 text-white">
+              <p class="text-xs text-white/70">Selamat datang 👋</p>
+              <p class="font-black text-lg">Owner</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-emerald-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">24</p>
+                  <p class="text-[9px] text-gray-400">Pesanan</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-teal-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-teal-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">12</p>
+                  <p class="text-[9px] text-gray-400">Menu</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between">
+          <div>
+            <p class="font-bold text-gray-800">Slate + Emerald</p>
+            <p class="text-xs text-gray-400">Clean, premium, modern</p>
+          </div>
+          <div class="flex gap-1.5">
+            <div class="w-5 h-5 rounded-full bg-slate-700"></div>
+            <div class="w-5 h-5 rounded-full bg-emerald-500"></div>
+            <div class="w-5 h-5 rounded-full bg-teal-400"></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Theme 4: Dark + Amber + Sky -->
+      <a href="theme-dark-amber-sky.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-amber-400">
+        <div class="flex h-64">
+          <div class="w-16 bg-zinc-900 flex flex-col items-center py-4 gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white text-xs font-black">T</div>
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/80"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <div class="w-3 h-3 rounded bg-white/20"></div>
+            </div>
+          </div>
+          <div class="flex-1 bg-zinc-50 p-4 flex flex-col gap-3">
+            <div class="rounded-xl bg-gradient-to-r from-amber-500 via-orange-400 to-sky-500 p-4 text-white">
+              <p class="text-xs text-white/70">Selamat datang 👋</p>
+              <p class="font-black text-lg">Owner</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-amber-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">24</p>
+                  <p class="text-[9px] text-gray-400">Pesanan</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm">
+                <div class="w-6 h-6 rounded-lg bg-sky-100 flex items-center justify-center">
+                  <div class="w-2.5 h-2.5 rounded bg-sky-500"></div>
+                </div>
+                <div>
+                  <p class="text-xs font-black text-gray-800">12</p>
+                  <p class="text-[9px] text-gray-400">Menu</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between">
+          <div>
+            <p class="font-bold text-gray-800">Dark + Amber + Sky</p>
+            <p class="text-xs text-gray-400">Warm, vibrant, cafe vibes</p>
+          </div>
+          <div class="flex gap-1.5">
+            <div class="w-5 h-5 rounded-full bg-zinc-800"></div>
+            <div class="w-5 h-5 rounded-full bg-amber-400"></div>
+            <div class="w-5 h-5 rounded-full bg-sky-400"></div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Batch 2 -->
+    <div class="mt-10 mb-4"><p class="text-sm font-bold text-gray-400 uppercase tracking-widest">Batch 2 — Opsi Baru</p></div>
+    <div class="grid grid-cols-2 gap-6">
+
+      <!-- Coral + Navy -->
+      <a href="theme-coral-navy.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-orange-400">
+        <div class="flex h-64">
+          <div class="w-16 flex flex-col items-center py-4 gap-3" style="background:#0f172a">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black" style="background:linear-gradient(135deg,#ff6b47,#ff4500)">T</div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#ff6b47,#ff4500)"><div class="w-3 h-3 rounded bg-white/80"></div></div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center"><div class="w-3 h-3 rounded bg-white/20"></div></div>
+          </div>
+          <div class="flex-1 p-4 flex flex-col gap-3" style="background:linear-gradient(135deg,#f8fafc,#fff1ee)">
+            <div class="rounded-xl p-4 text-white" style="background:linear-gradient(135deg,#0f172a,#1e3a5f,#ff6b47)">
+              <p class="text-xs text-white/70">Selamat datang 👋</p><p class="font-black text-lg">Owner</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm"><div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:#fff1ee"><div class="w-2.5 h-2.5 rounded" style="background:#ff6b47"></div></div><div><p class="text-xs font-black text-gray-800">24</p><p class="text-[9px] text-gray-400">Pesanan</p></div></div>
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm"><div class="w-6 h-6 rounded-lg bg-sky-50 flex items-center justify-center"><div class="w-2.5 h-2.5 rounded bg-sky-400"></div></div><div><p class="text-xs font-black text-gray-800">12</p><p class="text-[9px] text-gray-400">Menu</p></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between">
+          <div><p class="font-bold text-gray-800">Coral + Navy</p><p class="text-xs text-gray-400">Bold, dramatic, modern</p></div>
+          <div class="flex gap-1.5"><div class="w-5 h-5 rounded-full" style="background:#0f172a"></div><div class="w-5 h-5 rounded-full" style="background:#ff6b47"></div><div class="w-5 h-5 rounded-full bg-sky-400"></div></div>
+        </div>
+      </a>
+
+      <!-- Electric Blue + Black -->
+      <a href="theme-electric-blue.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-cyan-400">
+        <div class="flex h-64">
+          <div class="w-16 flex flex-col items-center py-4 gap-3" style="background:#050a0f">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black" style="background:rgba(0,200,255,0.15);border:1px solid rgba(0,200,255,0.3);color:#00c8ff">T</div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:rgba(0,200,255,0.12);border:1px solid rgba(0,200,255,0.25)"><div class="w-3 h-3 rounded" style="background:#00c8ff"></div></div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center"><div class="w-3 h-3 rounded" style="background:rgba(255,255,255,0.15)"></div></div>
+          </div>
+          <div class="flex-1 p-4 flex flex-col gap-3" style="background:#080d14">
+            <div class="rounded-xl p-4" style="background:linear-gradient(135deg,#050a0f,#001a2e,#003344);border:1px solid rgba(0,200,255,0.15)">
+              <p class="text-xs" style="color:rgba(255,255,255,0.5)">Selamat datang 👋</p><p class="font-black text-lg" style="color:#00c8ff">Owner</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="rounded-xl p-3 flex items-center gap-2" style="background:#0a1628;border:1px solid rgba(0,200,255,0.1)"><div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:rgba(0,200,255,0.08)"><div class="w-2.5 h-2.5 rounded" style="background:#00c8ff"></div></div><div><p class="text-xs font-black text-white">24</p><p class="text-[9px]" style="color:rgba(255,255,255,0.4)">Pesanan</p></div></div>
+              <div class="rounded-xl p-3 flex items-center gap-2" style="background:#0a1628;border:1px solid rgba(0,200,255,0.1)"><div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:rgba(0,200,255,0.08)"><div class="w-2.5 h-2.5 rounded" style="background:#00c8ff"></div></div><div><p class="text-xs font-black text-white">12</p><p class="text-[9px]" style="color:rgba(255,255,255,0.4)">Menu</p></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="px-4 py-3 flex items-center justify-between" style="background:#0a1628">
+          <div><p class="font-bold text-white">Electric Blue + Black</p><p class="text-xs" style="color:rgba(255,255,255,0.4)">Cyberpunk, dark, Gen Z</p></div>
+          <div class="flex gap-1.5"><div class="w-5 h-5 rounded-full" style="background:#050a0f"></div><div class="w-5 h-5 rounded-full" style="background:#00c8ff"></div><div class="w-5 h-5 rounded-full" style="background:#0a1628;border:1px solid rgba(0,200,255,0.4)"></div></div>
+        </div>
+      </a>
+
+      <!-- Sunset -->
+      <a href="theme-sunset.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-orange-400">
+        <div class="flex h-64">
+          <div class="w-16 flex flex-col items-center py-4 gap-3" style="background:linear-gradient(180deg,#7c1a00,#9a2412)">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black" style="background:linear-gradient(135deg,#f97316,#fbbf24);color:#7c1a00">T</div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#f97316,#fbbf24)"><div class="w-3 h-3 rounded bg-white/80"></div></div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center"><div class="w-3 h-3 rounded bg-white/20"></div></div>
+          </div>
+          <div class="flex-1 p-4 flex flex-col gap-3" style="background:linear-gradient(135deg,#fff7ed,#fef3c7)">
+            <div class="rounded-xl p-4 text-white" style="background:linear-gradient(135deg,#7c1a00,#c0391b,#f97316)">
+              <p class="text-xs text-white/70">Selamat datang 👋</p><p class="font-black text-lg">Owner</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm"><div class="w-6 h-6 rounded-lg bg-orange-50 flex items-center justify-center"><div class="w-2.5 h-2.5 rounded bg-orange-400"></div></div><div><p class="text-xs font-black text-gray-800">24</p><p class="text-[9px] text-gray-400">Pesanan</p></div></div>
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm"><div class="w-6 h-6 rounded-lg bg-amber-50 flex items-center justify-center"><div class="w-2.5 h-2.5 rounded bg-amber-400"></div></div><div><p class="text-xs font-black text-gray-800">12</p><p class="text-[9px] text-gray-400">Menu</p></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between">
+          <div><p class="font-bold text-gray-800">Sunset</p><p class="text-xs text-gray-400">Warm, fiery, vibrant</p></div>
+          <div class="flex gap-1.5"><div class="w-5 h-5 rounded-full" style="background:#7c1a00"></div><div class="w-5 h-5 rounded-full bg-orange-400"></div><div class="w-5 h-5 rounded-full bg-yellow-400"></div></div>
+        </div>
+      </a>
+
+      <!-- Forest + Gold -->
+      <a href="theme-forest-gold.html" class="theme-card block rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-green-500">
+        <div class="flex h-64">
+          <div class="w-16 flex flex-col items-center py-4 gap-3" style="background:#052e16">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black" style="background:linear-gradient(135deg,#eab308,#ca8a04);color:#052e16">T</div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#15803d,#16a34a)"><div class="w-3 h-3 rounded bg-white/80"></div></div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center"><div class="w-3 h-3 rounded bg-white/20"></div></div>
+          </div>
+          <div class="flex-1 p-4 flex flex-col gap-3" style="background:linear-gradient(135deg,#f0fdf4,#fefce8)">
+            <div class="rounded-xl p-4 text-white" style="background:linear-gradient(135deg,#052e16,#15803d,#eab308)">
+              <p class="text-xs text-white/70">Selamat datang 👋</p><p class="font-black text-lg">Owner</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 flex-1">
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm"><div class="w-6 h-6 rounded-lg bg-green-50 flex items-center justify-center"><div class="w-2.5 h-2.5 rounded bg-green-600"></div></div><div><p class="text-xs font-black text-gray-800">24</p><p class="text-[9px] text-gray-400">Pesanan</p></div></div>
+              <div class="bg-white rounded-xl p-3 flex items-center gap-2 shadow-sm"><div class="w-6 h-6 rounded-lg bg-yellow-50 flex items-center justify-center"><div class="w-2.5 h-2.5 rounded bg-yellow-500"></div></div><div><p class="text-xs font-black text-gray-800">12</p><p class="text-[9px] text-gray-400">Menu</p></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between">
+          <div><p class="font-bold text-gray-800">Forest + Gold</p><p class="text-xs text-gray-400">Natural, premium, earthy</p></div>
+          <div class="flex gap-1.5"><div class="w-5 h-5 rounded-full" style="background:#052e16"></div><div class="w-5 h-5 rounded-full bg-green-600"></div><div class="w-5 h-5 rounded-full bg-yellow-400"></div></div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</body>
+</html>
