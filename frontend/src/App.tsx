@@ -4,6 +4,8 @@ import { useThemeStore } from './store/themeStore'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import DashboardHome from './pages/dashboard/DashboardHome'
+import CategoryPage from './pages/dashboard/category/CategoryPage'
+import MenuPage from './pages/dashboard/menu/MenuPage'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />}>
             <Route index element={<DashboardHome />} />
+            <Route path="categories" element={<CategoryPage />} />
+            <Route path="menu" element={<MenuPage />} />
           </Route>
         </Route>
 
