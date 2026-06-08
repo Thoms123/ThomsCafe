@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2, UtensilsCrossed, X, ImagePlus, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Plus, Pencil, Trash2, UtensilsCrossed, X, ImagePlus, ToggleLeft, ToggleRight, ChevronDown } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
 
@@ -26,7 +26,7 @@ interface ApiResponse<T> {
   data: T
 }
 
-const BACKEND = 'http://localhost:8080'
+// Cloudinary URLs are absolute — no prefix needed
 
 function fetchCategories() {
   return api.get<ApiResponse<Category[]>>('/categories').then((r) => r.data.data)
@@ -93,7 +93,19 @@ export default function MenuPage() {
   const [form, setForm] = useState<MenuFormState>(defaultForm)
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [error, setError] = useState('')
+  const [showCatDropdown, setShowCatDropdown] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const catDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleOutsideClick(e: MouseEvent) {
+      if (catDropdownRef.current && !catDropdownRef.current.contains(e.target as Node)) {
+        setShowCatDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
 
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: fetchCategories })
   const { data: menus = [], isLoading } = useQuery({
@@ -117,7 +129,7 @@ export default function MenuPage() {
       price: String(menu.price),
       categoryId: String(menu.category_id),
       imageFile: null,
-      imagePreview: menu.image ? `${BACKEND}${menu.image}` : '',
+      imagePreview: menu.image ?? '',
     })
     setError('')
     setShowModal(true)
@@ -128,6 +140,7 @@ export default function MenuPage() {
     setEditMenu(null)
     setForm(defaultForm)
     setError('')
+    setShowCatDropdown(false)
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -258,7 +271,7 @@ export default function MenuPage() {
               >
                 {menu.image ? (
                   <img
-                    src={`${BACKEND}${menu.image}`}
+                    src={menu.image}
                     alt={menu.name}
                     className="w-full h-full object-cover"
                   />
@@ -409,19 +422,85 @@ export default function MenuPage() {
               </div>
 
               {/* Category */}
-              <div>
+              <div ref={catDropdownRef} style={{ position: 'relative' }}>
                 <label style={labelStyle}>Kategori</label>
-                <select
-                  style={{ ...inputStyle, appearance: 'none' }}
-                  value={form.categoryId}
-                  onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
-                  required
+                <button
+                  type="button"
+                  onClick={() => setShowCatDropdown((v) => !v)}
+                  style={{
+                    ...inputStyle,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
                 >
-                  <option value="">Pilih kategori...</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
+                  <span style={{ color: form.categoryId ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                    {form.categoryId
+                      ? categories.find((c) => String(c.id) === form.categoryId)?.name
+                      : 'Pilih kategori...'}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      color: 'var(--text-muted)',
+                      transform: showCatDropdown ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.15s',
+                      flexShrink: 0,
+                    }}
+                  />
+                </button>
+                {showCatDropdown && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 4px)',
+                      left: 0,
+                      right: 0,
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--accent-border)',
+                      borderRadius: 10,
+                      overflow: 'hidden',
+                      zIndex: 100,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                    }}
+                  >
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setForm((f) => ({ ...f, categoryId: String(cat.id) }))
+                          setShowCatDropdown(false)
+                        }}
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '9px 12px',
+                          fontSize: 14,
+                          background: String(cat.id) === form.categoryId ? 'var(--accent-dim)' : 'transparent',
+                          color: String(cat.id) === form.categoryId ? 'var(--accent-text)' : 'var(--text-primary)',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'block',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (String(cat.id) !== form.categoryId)
+                            e.currentTarget.style.background = 'var(--accent-dim)'
+                        }}
+                        onMouseLeave={(e) => {
+                          if (String(cat.id) !== form.categoryId)
+                            e.currentTarget.style.background = 'transparent'
+                        }}
+                      >
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* hidden input untuk validasi required */}
+                <input type="text" required value={form.categoryId} onChange={() => {}} style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }} />
               </div>
 
               {error && <p className="text-xs" style={{ color: '#f87171' }}>{error}</p>}
