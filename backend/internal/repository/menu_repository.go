@@ -110,11 +110,6 @@ func (r *MenuRepository) Update(id int, name string, price float64, image string
 	return r.FindByID(id)
 }
 
-func (r *MenuRepository) UpdateImage(id int, image string) error {
-	_, err := r.db.Exec(`UPDATE menus SET image=$1 WHERE id=$2`, image, id)
-	return err
-}
-
 func (r *MenuRepository) ToggleAvailability(id int) (*Menu, error) {
 	_, err := r.db.Exec(`UPDATE menus SET is_available = NOT is_available WHERE id = $1`, id)
 	if err != nil {
