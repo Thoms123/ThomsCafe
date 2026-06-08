@@ -10,6 +10,8 @@ import (
 	"pos-cafe/internal/router"
 )
 
+const uploadDir = "uploads/menus"
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
@@ -26,6 +28,10 @@ func main() {
 	}
 
 	seed.Run(db)
+
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		log.Fatalf("Failed to create upload directory: %v", err)
+	}
 
 	r := router.Setup(db)
 
