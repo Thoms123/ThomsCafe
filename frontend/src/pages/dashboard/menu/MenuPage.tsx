@@ -26,7 +26,7 @@ interface ApiResponse<T> {
   data: T
 }
 
-const BACKEND = 'http://localhost:8080'
+// Cloudinary URLs are absolute — no prefix needed
 
 function fetchCategories() {
   return api.get<ApiResponse<Category[]>>('/categories').then((r) => r.data.data)
@@ -129,7 +129,7 @@ export default function MenuPage() {
       price: String(menu.price),
       categoryId: String(menu.category_id),
       imageFile: null,
-      imagePreview: menu.image ? `${BACKEND}${menu.image}` : '',
+      imagePreview: menu.image ?? '',
     })
     setError('')
     setShowModal(true)
@@ -271,7 +271,7 @@ export default function MenuPage() {
               >
                 {menu.image ? (
                   <img
-                    src={`${BACKEND}${menu.image}`}
+                    src={menu.image}
                     alt={menu.name}
                     className="w-full h-full object-cover"
                   />

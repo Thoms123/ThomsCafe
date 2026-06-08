@@ -2,24 +2,18 @@ package router
 
 import (
 	"database/sql"
-	"net/http"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/gin-gonic/gin"
 	"pos-cafe/internal/handler"
 	"pos-cafe/internal/middleware"
 	"pos-cafe/internal/repository"
 )
 
-const uploadDir = "uploads/menus"
-const uploadBase = "/uploads/menus"
-
-func Setup(db *sql.DB) *gin.Engine {
+func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(corsMiddleware())
-
-	// Serve uploaded images
-	r.StaticFS("/uploads", http.Dir("uploads"))
 
 	api := r.Group("/api/v1")
 
@@ -31,7 +25,7 @@ func Setup(db *sql.DB) *gin.Engine {
 	// Handlers
 	authHandler := handler.NewAuthHandler(authRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
-	menuHandler := handler.NewMenuHandler(menuRepo, uploadDir, uploadBase)
+	menuHandler := handler.NewMenuHandler(menuRepo, cld)
 
 	// Public routes
 	public := api.Group("")

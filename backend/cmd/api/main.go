@@ -4,13 +4,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/joho/godotenv"
 	"pos-cafe/db/seed"
 	"pos-cafe/internal/config"
 	"pos-cafe/internal/router"
 )
-
-const uploadDir = "uploads/menus"
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -29,11 +28,16 @@ func main() {
 
 	seed.Run(db)
 
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		log.Fatalf("Failed to create upload directory: %v", err)
+	cld, err := cloudinary.NewFromParams(
+		os.Getenv("CLOUDINARY_CLOUD_NAME"),
+		os.Getenv("CLOUDINARY_API_KEY"),
+		os.Getenv("CLOUDINARY_API_SECRET"),
+	)
+	if err != nil {
+		log.Fatalf("Failed to init Cloudinary: %v", err)
 	}
 
-	r := router.Setup(db)
+	r := router.Setup(db, cld)
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {
