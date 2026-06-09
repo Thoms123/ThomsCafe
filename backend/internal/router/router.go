@@ -2,6 +2,7 @@ package router
 
 import (
 	"database/sql"
+	"os"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/gin-gonic/gin"
@@ -15,21 +16,29 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 
 	r.Use(corsMiddleware())
 
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		frontendURL = "http://localhost:5173"
+	}
+
 	api := r.Group("/api/v1")
 
 	// Repositories
 	authRepo := repository.NewAuthRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
 	menuRepo := repository.NewMenuRepository(db)
+	tableRepo := repository.NewTableRepository(db, frontendURL)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	menuHandler := handler.NewMenuHandler(menuRepo, cld)
+	tableHandler := handler.NewTableHandler(tableRepo, menuRepo)
 
 	// Public routes
 	public := api.Group("")
 	public.POST("/auth/login", authHandler.Login)
+	public.GET("/public/menu/:token", tableHandler.PublicMenuByToken)
 
 	// Protected routes
 	protected := api.Group("")
@@ -49,6 +58,12 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	protected.PUT("/menus/:id", middleware.RequirePermission("menu:update"), menuHandler.Update)
 	protected.PATCH("/menus/:id/availability", middleware.RequirePermission("menu:update"), menuHandler.ToggleAvailability)
 	protected.DELETE("/menus/:id", middleware.RequirePermission("menu:delete"), menuHandler.Delete)
+
+	// Tables
+	protected.GET("/tables", tableHandler.List)
+	protected.POST("/tables", middleware.RequirePermission("table:create"), tableHandler.Create)
+	protected.PUT("/tables/:id", middleware.RequirePermission("table:update"), tableHandler.Update)
+	protected.DELETE("/tables/:id", middleware.RequirePermission("table:delete"), tableHandler.Delete)
 
 	return r
 }
