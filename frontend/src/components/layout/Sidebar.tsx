@@ -52,7 +52,7 @@ export default function Sidebar() {
     queryKey: ['orders-pending-count'],
     queryFn: fetchPendingCount,
     enabled: hasPermission('order:read'),
-    refetchInterval: 10000,
+    refetchInterval: 30000, // safety net — invalidated on WS order events via useOrdersSocket
   })
 
   function handleLogout() {
