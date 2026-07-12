@@ -8,6 +8,7 @@ import CategoryPage from './pages/dashboard/category/CategoryPage'
 import MenuPage from './pages/dashboard/menu/MenuPage'
 import TablePage from './pages/dashboard/table/TablePage'
 import MenuPublicPage from './pages/menu/MenuPublicPage'
+import OrderStatusPage from './pages/menu/OrderStatusPage'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
         {/* Public */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/menu/:token" element={<MenuPublicPage />} />
+        <Route path="/order/:id/status" element={<OrderStatusPage />} />
 
         {/* Protected dashboard */}
         <Route element={<ProtectedRoute />}>
