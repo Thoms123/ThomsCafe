@@ -1,11 +1,10 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2, Circle, Coffee, UtensilsCrossed } from 'lucide-react'
-import axios from 'axios'
+import api from '../../lib/axios'
 import { useCartStore } from '../../store/cartStore'
 import { useOrderStatusSocket } from '../../hooks/useOrderStatusSocket'
-
-const BASE = 'http://localhost:8080/api/v1'
+import { Skeleton } from '../../components/ui/Skeleton'
 
 interface OrderItem {
   id: number
@@ -50,7 +49,7 @@ function stepIndex(status: string) {
 }
 
 function fetchOrder(id: string) {
-  return axios.get<{ data: OrderData }>(`${BASE}/public/orders/${id}`).then((r) => r.data.data)
+  return api.get<{ data: OrderData }>(`/public/orders/${id}`).then((r) => r.data.data)
 }
 
 function formatPrice(n: number) {
@@ -72,9 +71,18 @@ export default function OrderStatusPage() {
   useOrderStatusSocket(id)
 
   if (isLoading) {
+    const darkSkeleton: React.CSSProperties = {
+      background: 'linear-gradient(90deg, rgba(0,200,255,0.05) 25%, rgba(0,200,255,0.14) 50%, rgba(0,200,255,0.05) 75%)',
+      backgroundSize: '200% 100%',
+    }
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f1e30' }}>
-        <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: '#00c8ff', borderTopColor: 'transparent' }} />
+      <div className="min-h-screen pt-safe px-4" style={{ background: '#0f1e30' }}>
+        <Skeleton style={{ ...darkSkeleton, height: 100, borderRadius: 16, marginTop: 24 }} />
+        <div className="flex flex-col gap-2 mt-4">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} style={{ ...darkSkeleton, height: 56, borderRadius: 12 }} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -93,7 +101,7 @@ export default function OrderStatusPage() {
   return (
     <div className="min-h-screen" style={{ background: '#0f1e30' }}>
       <div
-        className="sticky top-0 z-10 px-4 py-4 flex items-center gap-3"
+        className="sticky top-0 z-10 px-4 pt-safe pb-4 flex items-center gap-3"
         style={{ background: 'rgba(15,30,48,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(0,200,255,0.12)' }}
       >
         <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,200,255,0.1)', border: '1px solid rgba(0,200,255,0.25)' }}>

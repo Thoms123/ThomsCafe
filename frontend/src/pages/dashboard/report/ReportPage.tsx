@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { Wallet, ShoppingBag, TrendingUp, Download, UtensilsCrossed, TableProperties } from 'lucide-react'
 import api from '../../../lib/axios'
+import { Skeleton } from '../../../components/ui/Skeleton'
 
 interface ApiResponse<T> {
   success: boolean
@@ -220,9 +221,7 @@ export default function ReportPage() {
           Penjualan Harian
         </h2>
         {dailyLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
-          </div>
+          <Skeleton style={{ height: 280 }} />
         ) : daily.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-2">
             <TrendingUp size={32} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
@@ -255,8 +254,13 @@ export default function ReportPage() {
             </span>
           </div>
           {topMenusLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+            <div className="flex flex-col">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-3 px-5 py-3" style={{ borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
+                  <Skeleton style={{ width: 24, height: 24, borderRadius: 8 }} />
+                  <Skeleton className="h-4 flex-1" />
+                </div>
+              ))}
             </div>
           ) : topMenus.length === 0 ? (
             <p className="text-sm text-center py-12" style={{ color: 'var(--text-muted)' }}>Belum ada data</p>
