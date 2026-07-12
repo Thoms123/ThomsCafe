@@ -28,17 +28,21 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	categoryRepo := repository.NewCategoryRepository(db)
 	menuRepo := repository.NewMenuRepository(db)
 	tableRepo := repository.NewTableRepository(db, frontendURL)
+	orderRepo := repository.NewOrderRepository(db)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	menuHandler := handler.NewMenuHandler(menuRepo, cld)
 	tableHandler := handler.NewTableHandler(tableRepo, menuRepo)
+	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo)
 
 	// Public routes
 	public := api.Group("")
 	public.POST("/auth/login", authHandler.Login)
 	public.GET("/public/menu/:token", tableHandler.PublicMenuByToken)
+	public.POST("/public/orders", orderHandler.Create)
+	public.GET("/public/orders/:id", orderHandler.GetStatus)
 
 	// Protected routes
 	protected := api.Group("")
