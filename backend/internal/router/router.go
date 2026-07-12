@@ -6,9 +6,11 @@ import (
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 	"pos-cafe/internal/handler"
 	"pos-cafe/internal/middleware"
 	"pos-cafe/internal/repository"
+	"pos-cafe/internal/ws"
 )
 
 func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
@@ -33,21 +35,34 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	roleRepo := repository.NewRoleRepository(db)
 	reportRepo := repository.NewReportRepository(db)
 
+	// WebSocket hub — broadcasts order events to kasir/staff (/ws/orders) and
+	// targeted status updates to customers watching a single order (/ws/order/:id).
+	hub := ws.NewHub()
+
 	// Handlers
 	authHandler := handler.NewAuthHandler(authRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	menuHandler := handler.NewMenuHandler(menuRepo, cld)
 	tableHandler := handler.NewTableHandler(tableRepo, menuRepo)
-	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo)
+	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo, hub)
 	userHandler := handler.NewUserHandler(userRepo)
 	roleHandler := handler.NewRoleHandler(roleRepo)
 	reportHandler := handler.NewReportHandler(reportRepo)
+	wsHandler := handler.NewWSHandler(hub, orderRepo)
+
+	// Rate limit order creation per IP to prevent spam (1 req/sec, burst of 5).
+	orderLimiter := middleware.NewIPRateLimiter(rate.Limit(1), 5)
+
+	// WebSocket routes — mounted at root (not under /api/v1) since the
+	// frontend derives its WS base URL by stripping /api/v1 from the API URL.
+	r.GET("/ws/orders", wsHandler.HandleOrdersWS)
+	r.GET("/ws/order/:id", wsHandler.HandleOrderSubWS)
 
 	// Public routes
 	public := api.Group("")
 	public.POST("/auth/login", authHandler.Login)
 	public.GET("/public/menu/:token", tableHandler.PublicMenuByToken)
-	public.POST("/public/orders", orderHandler.Create)
+	public.POST("/public/orders", orderLimiter.Middleware(), orderHandler.Create)
 	public.GET("/public/orders/:id", orderHandler.GetStatus)
 
 	// Protected routes

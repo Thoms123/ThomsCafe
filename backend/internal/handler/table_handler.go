@@ -32,7 +32,7 @@ func (h *TableHandler) Create(c *gin.Context) {
 		TableNumber string `json:"table_number" binding:"required,min=1,max=20"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 	table, err := h.tableRepo.Create(strings.TrimSpace(req.TableNumber))
@@ -53,7 +53,7 @@ func (h *TableHandler) Update(c *gin.Context) {
 		TableNumber string `json:"table_number" binding:"required,min=1,max=20"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 	table, err := h.tableRepo.Update(id, strings.TrimSpace(req.TableNumber))

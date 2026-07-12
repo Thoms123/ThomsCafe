@@ -6,16 +6,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"pos-cafe/internal/repository"
+	"pos-cafe/internal/ws"
 	"pos-cafe/pkg/response"
 )
 
 type OrderHandler struct {
 	orderRepo *repository.OrderRepository
 	tableRepo *repository.TableRepository
+	hub       *ws.Hub
 }
 
-func NewOrderHandler(orderRepo *repository.OrderRepository, tableRepo *repository.TableRepository) *OrderHandler {
-	return &OrderHandler{orderRepo: orderRepo, tableRepo: tableRepo}
+func NewOrderHandler(orderRepo *repository.OrderRepository, tableRepo *repository.TableRepository, hub *ws.Hub) *OrderHandler {
+	return &OrderHandler{orderRepo: orderRepo, tableRepo: tableRepo, hub: hub}
 }
 
 // Create — public endpoint, no auth required
@@ -31,7 +33,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		} `json:"items" binding:"required,min=1,dive"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -69,6 +71,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		return
 	}
 
+	h.hub.BroadcastOrderEvent("order_created", order)
 	response.Created(c, "Order created", order)
 }
 
@@ -152,7 +155,7 @@ func (h *OrderHandler) UpdateStatus(c *gin.Context) {
 		Status string `json:"status" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -170,5 +173,7 @@ func (h *OrderHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
+	h.hub.BroadcastOrderEvent("order_updated", order)
+	h.hub.NotifyOrderStatus(order.ID, order)
 	response.OK(c, "Order status updated", order)
 }
