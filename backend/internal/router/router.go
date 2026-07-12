@@ -69,6 +69,11 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	protected.PUT("/tables/:id", middleware.RequirePermission("table:update"), tableHandler.Update)
 	protected.DELETE("/tables/:id", middleware.RequirePermission("table:delete"), tableHandler.Delete)
 
+	// Orders
+	protected.GET("/orders", orderHandler.List)
+	protected.GET("/orders/:id", orderHandler.GetByID)
+	protected.PATCH("/orders/:id/status", middleware.RequirePermission("order:update"), orderHandler.UpdateStatus)
+
 	return r
 }
 

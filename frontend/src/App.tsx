@@ -7,6 +7,7 @@ import DashboardHome from './pages/dashboard/DashboardHome'
 import CategoryPage from './pages/dashboard/category/CategoryPage'
 import MenuPage from './pages/dashboard/menu/MenuPage'
 import TablePage from './pages/dashboard/table/TablePage'
+import OrderPage from './pages/dashboard/order/OrderPage'
 import MenuPublicPage from './pages/menu/MenuPublicPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
 import ProtectedRoute from './components/shared/ProtectedRoute'
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="categories" element={<CategoryPage />} />
             <Route path="menu" element={<MenuPage />} />
             <Route path="tables" element={<TablePage />} />
+            <Route path="orders" element={<OrderPage />} />
           </Route>
         </Route>
 

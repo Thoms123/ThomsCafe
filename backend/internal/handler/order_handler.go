@@ -92,3 +92,83 @@ func (h *OrderHandler) GetStatus(c *gin.Context) {
 
 	response.OK(c, "OK", order)
 }
+
+// List — protected, permission: order:read
+func (h *OrderHandler) List(c *gin.Context) {
+	var f repository.OrderFilter
+	if status := c.Query("status"); status != "" {
+		f.Status = &status
+	}
+	if date := c.Query("date"); date != "" {
+		f.Date = &date
+	}
+	if tableID := c.Query("table_id"); tableID != "" {
+		id, err := strconv.Atoi(tableID)
+		if err != nil {
+			response.BadRequest(c, "Invalid table_id")
+			return
+		}
+		f.TableID = &id
+	}
+
+	orders, err := h.orderRepo.FindAll(f)
+	if err != nil {
+		response.InternalError(c, "Failed to fetch orders")
+		return
+	}
+	response.OK(c, "OK", orders)
+}
+
+// GetByID — protected, permission: order:read
+func (h *OrderHandler) GetByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.BadRequest(c, "Invalid order id")
+		return
+	}
+
+	order, err := h.orderRepo.FindByID(id)
+	if err != nil {
+		response.InternalError(c, "Failed to fetch order")
+		return
+	}
+	if order == nil {
+		response.NotFound(c, "Order not found")
+		return
+	}
+
+	response.OK(c, "OK", order)
+}
+
+// UpdateStatus — protected, permission: order:update
+func (h *OrderHandler) UpdateStatus(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.BadRequest(c, "Invalid order id")
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	order, err := h.orderRepo.UpdateStatus(id, req.Status)
+	if err != nil {
+		if repository.IsInvalidStatus(err) {
+			response.BadRequest(c, "Invalid status")
+			return
+		}
+		response.InternalError(c, "Failed to update order status")
+		return
+	}
+	if order == nil {
+		response.NotFound(c, "Order not found")
+		return
+	}
+
+	response.OK(c, "Order status updated", order)
+}

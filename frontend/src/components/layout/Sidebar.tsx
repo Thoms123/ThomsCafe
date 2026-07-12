@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   Coffee,
   LayoutDashboard,
@@ -15,6 +16,19 @@ import {
 import { useAuthStore } from '../../store/authStore'
 import { useThemeStore } from '../../store/themeStore'
 import { PermissionGate } from '../shared/PermissionGate'
+import api from '../../lib/axios'
+
+interface ApiResponse<T> {
+  success: boolean
+  message: string
+  data: T
+}
+
+function fetchPendingCount() {
+  return api
+    .get<ApiResponse<{ id: number }[]>>('/orders', { params: { status: 'pending' } })
+    .then((r) => r.data.data.length)
+}
 
 const navItems = [
   { label: 'Dashboard',  href: '/dashboard',            permission: null,             icon: LayoutDashboard },
@@ -29,8 +43,15 @@ const navItems = [
 export default function Sidebar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
+  const { user, logout, hasPermission } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
+
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['orders-pending-count'],
+    queryFn: fetchPendingCount,
+    enabled: hasPermission('order:read'),
+    refetchInterval: 10000,
+  })
 
   function handleLogout() {
     logout()
@@ -84,11 +105,20 @@ export default function Sidebar() {
             >
               <Icon size={16} />
               {item.label}
-              {isActive && (
+              {item.href === '/dashboard/orders' && pendingCount > 0 ? (
                 <span
-                  className="ml-auto w-1.5 h-1.5 rounded-full"
-                  style={{ background: 'var(--accent)' }}
-                />
+                  className="ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-full"
+                  style={{ background: 'var(--accent)', color: '#000' }}
+                >
+                  {pendingCount}
+                </span>
+              ) : (
+                isActive && (
+                  <span
+                    className="ml-auto w-1.5 h-1.5 rounded-full"
+                    style={{ background: 'var(--accent)' }}
+                  />
+                )
               )}
             </Link>
           )
