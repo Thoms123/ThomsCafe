@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"pos-cafe/internal/repository"
@@ -26,7 +24,7 @@ type loginRequest struct {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -36,12 +34,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid email or password"})
+		response.Unauthorized(c, "Invalid email or password")
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Invalid email or password"})
+		response.Unauthorized(c, "Invalid email or password")
 		return
 	}
 

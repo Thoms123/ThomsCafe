@@ -39,7 +39,7 @@ func (h *RoleHandler) Create(c *gin.Context) {
 		Name string `json:"name" binding:"required,min=1,max=50"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -66,7 +66,7 @@ func (h *RoleHandler) UpdatePermissions(c *gin.Context) {
 		PermissionIDs []int `json:"permission_ids"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 

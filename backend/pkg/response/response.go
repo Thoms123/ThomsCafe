@@ -1,6 +1,11 @@
 package response
 
-import "github.com/gin-gonic/gin"
+import (
+	"errors"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+)
 
 type Response struct {
 	Success bool        `json:"success"`
@@ -48,4 +53,38 @@ func NotFound(c *gin.Context, message string) {
 
 func InternalError(c *gin.Context, message string) {
 	c.JSON(500, Response{Success: false, Message: message})
+}
+
+func TooManyRequests(c *gin.Context, message string) {
+	c.JSON(429, Response{Success: false, Message: message})
+}
+
+// ValidationError formats a c.ShouldBindJSON error into field-level messages
+// instead of leaking the raw go-playground/validator struct-tag error text.
+func ValidationError(c *gin.Context, err error) {
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
+		fields := make(map[string]string, len(ve))
+		for _, fe := range ve {
+			fields[fe.Field()] = validationMessage(fe)
+		}
+		c.JSON(400, Response{Success: false, Message: "Validation failed", Data: gin.H{"errors": fields}})
+		return
+	}
+	BadRequest(c, err.Error())
+}
+
+func validationMessage(fe validator.FieldError) string {
+	switch fe.Tag() {
+	case "required":
+		return fe.Field() + " is required"
+	case "email":
+		return fe.Field() + " must be a valid email address"
+	case "min":
+		return fe.Field() + " must be at least " + fe.Param() + " characters"
+	case "max":
+		return fe.Field() + " must be at most " + fe.Param() + " characters"
+	default:
+		return fe.Field() + " is invalid"
+	}
 }

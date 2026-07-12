@@ -33,7 +33,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		RoleID   int    `json:"role_id" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 		Password *string `json:"password" binding:"omitempty,min=6"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 

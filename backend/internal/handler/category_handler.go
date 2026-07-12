@@ -30,7 +30,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 		Name string `json:"name" binding:"required,min=1,max=100"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 	cat, err := h.repo.Create(req.Name)
@@ -51,7 +51,7 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 		Name string `json:"name" binding:"required,min=1,max=100"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 	cat, err := h.repo.Update(id, req.Name)
