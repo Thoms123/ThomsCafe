@@ -31,6 +31,7 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	orderRepo := repository.NewOrderRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
+	reportRepo := repository.NewReportRepository(db)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authRepo)
@@ -40,6 +41,7 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	roleHandler := handler.NewRoleHandler(roleRepo)
+	reportHandler := handler.NewReportHandler(reportRepo)
 
 	// Public routes
 	public := api.Group("")
@@ -89,6 +91,12 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	protected.POST("/roles", middleware.RequirePermission("role:manage"), roleHandler.Create)
 	protected.PUT("/roles/:id/permissions", middleware.RequirePermission("role:manage"), roleHandler.UpdatePermissions)
 	protected.GET("/permissions", middleware.RequirePermission("role:manage"), roleHandler.ListPermissions)
+
+	// Reports
+	protected.GET("/reports/sales", middleware.RequirePermission("report:read"), reportHandler.Sales)
+	protected.GET("/reports/sales/daily", middleware.RequirePermission("report:read"), reportHandler.DailySales)
+	protected.GET("/reports/top-menus", middleware.RequirePermission("report:read"), reportHandler.TopMenus)
+	protected.GET("/reports/tables", middleware.RequirePermission("report:read"), reportHandler.TableRecap)
 
 	return r
 }
