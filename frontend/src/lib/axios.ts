@@ -27,4 +27,11 @@ api.interceptors.response.use(
   }
 )
 
+export function getWsBaseUrl(): string {
+  const wsUrl = import.meta.env.VITE_WS_URL
+  if (wsUrl) return wsUrl
+  const apiUrl: string = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'
+  return apiUrl.replace(/^http/, 'ws').replace(/\/api\/v1\/?$/, '')
+}
+
 export default api

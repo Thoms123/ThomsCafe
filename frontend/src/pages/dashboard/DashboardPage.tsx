@@ -1,7 +1,10 @@
 import { Outlet } from 'react-router-dom'
 import Sidebar from '../../components/layout/Sidebar'
+import { useOrdersSocket } from '../../hooks/useOrdersSocket'
 
 export default function DashboardPage() {
+  useOrdersSocket()
+
   return (
     <div className="flex min-h-screen transition-colors duration-200" style={{ background: 'var(--bg-app)' }}>
       <Sidebar />

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2, Circle, Coffee, UtensilsCrossed } from 'lucide-react'
 import axios from 'axios'
 import { useCartStore } from '../../store/cartStore'
+import { useOrderStatusSocket } from '../../hooks/useOrderStatusSocket'
 
 const BASE = 'http://localhost:8080/api/v1'
 
@@ -64,9 +65,11 @@ export default function OrderStatusPage() {
     queryKey: ['order-status', id],
     queryFn: () => fetchOrder(id!),
     enabled: !!id,
-    refetchInterval: 5000,
+    refetchInterval: 30000, // safety net — useOrderStatusSocket below is the primary update path
     retry: false,
   })
+
+  useOrderStatusSocket(id)
 
   if (isLoading) {
     return (

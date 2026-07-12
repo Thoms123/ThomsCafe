@@ -81,7 +81,7 @@ export default function OrderPage() {
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['orders', showAllDates ? null : date],
     queryFn: () => fetchOrders(showAllDates ? null : date),
-    refetchInterval: 10000,
+    refetchInterval: 30000, // safety net — WS-driven invalidation (useOrdersSocket) is the primary update path
   })
 
   const advanceMut = useMutation({
