@@ -127,7 +127,7 @@ export default function OrderStatusPage() {
         <div className="flex items-center justify-between mb-8 px-2">
           {STEPS.map((step, idx) => (
             <div key={step.key} className="flex items-center flex-1">
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-col items-center gap-1.5 flex-shrink-0" style={{ width: 64 }}>
                 {idx <= current ? (
                   <CheckCircle2 size={22} style={{ color: '#00c8ff' }} />
                 ) : (
