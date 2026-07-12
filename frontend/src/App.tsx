@@ -8,6 +8,8 @@ import CategoryPage from './pages/dashboard/category/CategoryPage'
 import MenuPage from './pages/dashboard/menu/MenuPage'
 import TablePage from './pages/dashboard/table/TablePage'
 import OrderPage from './pages/dashboard/order/OrderPage'
+import UserPage from './pages/dashboard/user/UserPage'
+import RolePage from './pages/dashboard/role/RolePage'
 import MenuPublicPage from './pages/menu/MenuPublicPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
 import ProtectedRoute from './components/shared/ProtectedRoute'
@@ -35,6 +37,8 @@ export default function App() {
             <Route path="menu" element={<MenuPage />} />
             <Route path="tables" element={<TablePage />} />
             <Route path="orders" element={<OrderPage />} />
+            <Route path="users" element={<UserPage />} />
+            <Route path="roles" element={<RolePage />} />
           </Route>
         </Route>
 

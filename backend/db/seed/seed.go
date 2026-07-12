@@ -13,6 +13,7 @@ var allPermissions = []string{
 	"table:create", "table:read", "table:update", "table:delete",
 	"order:create", "order:read", "order:update", "order:delete",
 	"user:create", "user:read", "user:update", "user:delete",
+	"role:manage",
 	"report:read",
 }
 

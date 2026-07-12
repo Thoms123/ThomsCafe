@@ -27,6 +27,27 @@ export interface Category {
   name: string
 }
 
+export interface Permission {
+  id: number
+  name: string
+}
+
+export interface Role {
+  id: number
+  name: string
+  permissions: string[]
+}
+
+export interface ManagedUser {
+  id: number
+  name: string
+  email: string
+  role_id: number
+  role: string
+  is_active: boolean
+  created_at: string
+}
+
 export interface Table {
   id: number
   table_number: string

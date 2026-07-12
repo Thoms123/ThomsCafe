@@ -8,6 +8,7 @@ import {
   TableProperties,
   ShoppingBag,
   Users,
+  ShieldCheck,
   BarChart3,
   LogOut,
   Sun,
@@ -37,6 +38,7 @@ const navItems = [
   { label: 'Meja',       href: '/dashboard/tables',      permission: 'table:read',     icon: TableProperties },
   { label: 'Pesanan',    href: '/dashboard/orders',      permission: 'order:read',     icon: ShoppingBag },
   { label: 'Pengguna',   href: '/dashboard/users',       permission: 'user:read',      icon: Users },
+  { label: 'Role & Izin', href: '/dashboard/roles',      permission: 'role:manage',    icon: ShieldCheck },
   { label: 'Laporan',    href: '/dashboard/reports',     permission: 'report:read',    icon: BarChart3 },
 ]
 

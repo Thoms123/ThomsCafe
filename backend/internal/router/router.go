@@ -29,6 +29,8 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	menuRepo := repository.NewMenuRepository(db)
 	tableRepo := repository.NewTableRepository(db, frontendURL)
 	orderRepo := repository.NewOrderRepository(db)
+	userRepo := repository.NewUserRepository(db)
+	roleRepo := repository.NewRoleRepository(db)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authRepo)
@@ -36,6 +38,8 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	menuHandler := handler.NewMenuHandler(menuRepo, cld)
 	tableHandler := handler.NewTableHandler(tableRepo, menuRepo)
 	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo)
+	userHandler := handler.NewUserHandler(userRepo)
+	roleHandler := handler.NewRoleHandler(roleRepo)
 
 	// Public routes
 	public := api.Group("")
@@ -73,6 +77,18 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	protected.GET("/orders", orderHandler.List)
 	protected.GET("/orders/:id", orderHandler.GetByID)
 	protected.PATCH("/orders/:id/status", middleware.RequirePermission("order:update"), orderHandler.UpdateStatus)
+
+	// Users
+	protected.GET("/users", middleware.RequirePermission("user:read"), userHandler.List)
+	protected.POST("/users", middleware.RequirePermission("user:create"), userHandler.Create)
+	protected.PUT("/users/:id", middleware.RequirePermission("user:update"), userHandler.Update)
+	protected.DELETE("/users/:id", middleware.RequirePermission("user:delete"), userHandler.Delete)
+
+	// Roles & permissions
+	protected.GET("/roles", middleware.RequirePermission("role:manage"), roleHandler.List)
+	protected.POST("/roles", middleware.RequirePermission("role:manage"), roleHandler.Create)
+	protected.PUT("/roles/:id/permissions", middleware.RequirePermission("role:manage"), roleHandler.UpdatePermissions)
+	protected.GET("/permissions", middleware.RequirePermission("role:manage"), roleHandler.ListPermissions)
 
 	return r
 }
