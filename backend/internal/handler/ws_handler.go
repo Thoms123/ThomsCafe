@@ -25,13 +25,12 @@ func NewWSHandler(hub *ws.Hub, orderRepo *repository.OrderRepository) *WSHandler
 // via AuthMiddleware (which can't run before the connection is hijacked).
 func (h *WSHandler) HandleOrdersWS(c *gin.Context) {
 	token := c.Query("token")
-	claims, err := utils.ValidateJWT(token)
-	if err != nil {
+	if _, err := utils.ValidateJWT(token); err != nil {
 		response.Unauthorized(c, "Invalid or expired token")
 		return
 	}
 
-	ws.ServeOrdersWS(h.hub, c.Writer, c.Request, claims.UserID)
+	ws.ServeOrdersWS(h.hub, c.Writer, c.Request)
 }
 
 // HandleOrderSubWS — GET /ws/order/:id, public (mirrors POST /public/orders).

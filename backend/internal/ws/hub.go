@@ -10,9 +10,8 @@ import (
 // Client wraps a single WebSocket connection. Writes go through the
 // buffered send channel so a slow reader can never block the broadcaster.
 type Client struct {
-	conn   *websocket.Conn
-	send   chan []byte
-	userID int
+	conn *websocket.Conn
+	send chan []byte
 }
 
 // Hub fans out order events to connected kasir/staff clients (/ws/orders)

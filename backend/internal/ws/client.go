@@ -32,13 +32,13 @@ var upgrader = websocket.Upgrader{
 
 // ServeOrdersWS upgrades the request and registers the connection on
 // /ws/orders (broadcast to all kasir/staff).
-func ServeOrdersWS(hub *Hub, w http.ResponseWriter, r *http.Request, userID int) {
+func ServeOrdersWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
 
-	client := &Client{conn: conn, send: make(chan []byte, sendBuffer), userID: userID}
+	client := &Client{conn: conn, send: make(chan []byte, sendBuffer)}
 	hub.RegisterOrders(client)
 
 	go client.writePump()
