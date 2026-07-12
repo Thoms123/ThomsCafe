@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, UtensilsCrossed, X, ImagePlus, ToggleLeft, ToggleRight, ChevronDown } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
+import { useToast } from '../../../hooks/useToast'
+import { Skeleton } from '../../../components/ui/Skeleton'
 
 interface Category {
   id: number
@@ -87,12 +89,12 @@ function formatPrice(n: number) {
 
 export default function MenuPage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const [filterCat, setFilterCat] = useState<number | undefined>()
   const [showModal, setShowModal] = useState(false)
   const [editMenu, setEditMenu] = useState<Menu | null>(null)
   const [form, setForm] = useState<MenuFormState>(defaultForm)
   const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [error, setError] = useState('')
   const [showCatDropdown, setShowCatDropdown] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const catDropdownRef = useRef<HTMLDivElement>(null)
@@ -118,7 +120,6 @@ export default function MenuPage() {
   function openCreate() {
     setEditMenu(null)
     setForm(defaultForm)
-    setError('')
     setShowModal(true)
   }
 
@@ -131,7 +132,6 @@ export default function MenuPage() {
       imageFile: null,
       imagePreview: menu.image ?? '',
     })
-    setError('')
     setShowModal(true)
   }
 
@@ -139,7 +139,6 @@ export default function MenuPage() {
     setShowModal(false)
     setEditMenu(null)
     setForm(defaultForm)
-    setError('')
     setShowCatDropdown(false)
   }
 
@@ -157,13 +156,15 @@ export default function MenuPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['menus'] })
       closeModal()
+      toast.success(editMenu ? 'Menu berhasil diperbarui' : 'Menu berhasil ditambahkan')
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal menyimpan menu'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal menyimpan menu'),
   })
 
   const toggleMut = useMutation({
     mutationFn: (id: number) => api.patch(`/menus/${id}/availability`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['menus'] }),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal mengubah ketersediaan menu'),
   })
 
   const deleteMut = useMutation({
@@ -171,8 +172,9 @@ export default function MenuPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['menus'] })
       setDeleteId(null)
+      toast.success('Menu berhasil dihapus')
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal menghapus menu'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal menghapus menu'),
   })
 
   function handleSubmit(e: React.FormEvent) {
@@ -249,8 +251,17 @@ export default function MenuPage() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <div key={i} className="rounded-2xl overflow-hidden flex flex-col" style={cardStyle}>
+              <Skeleton style={{ height: 140, borderRadius: 0 }} />
+              <div className="p-3 flex flex-col gap-2">
+                <Skeleton className="h-4" style={{ width: '70%' }} />
+                <Skeleton className="h-3" style={{ width: '40%' }} />
+                <Skeleton className="h-5 mt-1" style={{ width: '50%' }} />
+              </div>
+            </div>
+          ))}
         </div>
       ) : menus.length === 0 ? (
         <div className="flex flex-col items-center py-20 gap-3" style={cardStyle}>
@@ -502,8 +513,6 @@ export default function MenuPage() {
                 {/* hidden input untuk validasi required */}
                 <input type="text" required value={form.categoryId} onChange={() => {}} style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }} />
               </div>
-
-              {error && <p className="text-xs" style={{ color: '#f87171' }}>{error}</p>}
 
               {/* Actions */}
               <div className="flex gap-3 pt-1">

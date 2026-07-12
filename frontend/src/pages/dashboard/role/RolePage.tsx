@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, ShieldCheck } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
+import { useToast } from '../../../hooks/useToast'
+import { Skeleton } from '../../../components/ui/Skeleton'
 import type { Role, Permission } from '../../../types'
 
 interface ApiResponse<T> {
@@ -62,8 +64,8 @@ const btnPrimary: React.CSSProperties = {
 
 export default function RolePage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const [newRoleName, setNewRoleName] = useState('')
-  const [error, setError] = useState('')
 
   const { data: roles = [], isLoading } = useQuery({ queryKey: ['roles'], queryFn: fetchRoles })
   const { data: permissions = [] } = useQuery({ queryKey: ['permissions'], queryFn: fetchPermissions })
@@ -73,16 +75,18 @@ export default function RolePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['roles'] })
       setNewRoleName('')
-      setError('')
+      toast.success('Role berhasil ditambahkan')
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal membuat role'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal membuat role'),
   })
 
+  // No success toast here — the checkbox itself is the immediate feedback,
+  // and toggling several permissions in a row would otherwise stack up toasts.
   const updatePermsMut = useMutation({
     mutationFn: ({ roleId, permissionIds }: { roleId: number; permissionIds: number[] }) =>
       api.put(`/roles/${roleId}/permissions`, { permission_ids: permissionIds }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['roles'] }),
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal mengubah izin role'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal mengubah izin role'),
   })
 
   function handleCreate(e: React.FormEvent) {
@@ -141,7 +145,6 @@ export default function RolePage() {
             {createMut.isPending ? 'Menyimpan...' : 'Tambah'}
           </button>
         </form>
-        {error && <p className="text-xs mt-2" style={{ color: '#f87171' }}>{error}</p>}
       </div>
 
       {/* Permission matrix */}
@@ -153,8 +156,14 @@ export default function RolePage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+          <div className="flex flex-col">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
+                <Skeleton className="h-4" style={{ width: '30%' }} />
+                <Skeleton className="h-4 ml-auto" style={{ width: 20 }} />
+                <Skeleton className="h-4" style={{ width: 20 }} />
+              </div>
+            ))}
           </div>
         ) : (
           <div className="overflow-x-auto">

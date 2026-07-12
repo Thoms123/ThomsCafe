@@ -5,6 +5,8 @@ import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
 import { useAuthStore } from '../../../store/authStore'
 import { PermissionGate } from '../../../components/shared/PermissionGate'
+import { useToast } from '../../../hooks/useToast'
+import { Skeleton } from '../../../components/ui/Skeleton'
 import type { ManagedUser, Role } from '../../../types'
 
 interface ApiResponse<T> {
@@ -66,12 +68,12 @@ const defaultForm: UserFormState = {
 
 export default function UserPage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const currentUser = useAuthStore((s) => s.user)
   const [showModal, setShowModal] = useState(false)
   const [editUser, setEditUser] = useState<ManagedUser | null>(null)
   const [form, setForm] = useState<UserFormState>(defaultForm)
   const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [error, setError] = useState('')
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const roleDropdownRef = useRef<HTMLDivElement>(null)
 
@@ -93,7 +95,6 @@ export default function UserPage() {
   function openCreate() {
     setEditUser(null)
     setForm(defaultForm)
-    setError('')
     setShowModal(true)
   }
 
@@ -106,7 +107,6 @@ export default function UserPage() {
       roleId: String(user.role_id),
       isActive: user.is_active,
     })
-    setError('')
     setShowModal(true)
   }
 
@@ -114,7 +114,6 @@ export default function UserPage() {
     setShowModal(false)
     setEditUser(null)
     setForm(defaultForm)
-    setError('')
     setShowRoleDropdown(false)
   }
 
@@ -139,9 +138,10 @@ export default function UserPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] })
+      toast.success(editUser ? 'Pengguna berhasil diperbarui' : 'Pengguna berhasil ditambahkan')
       closeModal()
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal menyimpan pengguna'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal menyimpan pengguna'),
   })
 
   const deleteMut = useMutation({
@@ -149,8 +149,9 @@ export default function UserPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] })
       setDeleteId(null)
+      toast.success('Pengguna berhasil dihapus')
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal menghapus pengguna'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal menghapus pengguna'),
   })
 
   function handleSubmit(e: React.FormEvent) {
@@ -204,8 +205,17 @@ export default function UserPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+          <div className="flex flex-col">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <Skeleton className="h-4" style={{ width: '35%' }} />
+                  <Skeleton className="h-3" style={{ width: '55%' }} />
+                </div>
+                <Skeleton className="h-5" style={{ width: 60, borderRadius: 999 }} />
+                <Skeleton className="h-5" style={{ width: 60, borderRadius: 999 }} />
+              </div>
+            ))}
           </div>
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-2">
@@ -417,8 +427,6 @@ export default function UserPage() {
                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Akun aktif</span>
                 </label>
               )}
-
-              {error && <p className="text-xs" style={{ color: '#f87171' }}>{error}</p>}
 
               <div className="flex gap-3 pt-1">
                 <button

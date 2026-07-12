@@ -4,6 +4,8 @@ import { ShoppingBag, Clock, ChevronRight, RotateCcw } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
 import { PermissionGate } from '../../../components/shared/PermissionGate'
+import { useToast } from '../../../hooks/useToast'
+import { Skeleton } from '../../../components/ui/Skeleton'
 
 interface OrderItem {
   id: number
@@ -75,6 +77,7 @@ const cardStyle = {
 
 export default function OrderPage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const [date, setDate] = useState<string>(todayStr())
   const [showAllDates, setShowAllDates] = useState(false)
 
@@ -90,9 +93,10 @@ export default function OrderPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['orders'] })
       qc.invalidateQueries({ queryKey: ['orders-pending-count'] })
+      toast.success('Status pesanan berhasil diperbarui')
     },
     onError: (e: AxiosError<{ message: string }>) => {
-      alert(e.response?.data?.message ?? 'Gagal memperbarui status pesanan')
+      toast.error(e.response?.data?.message ?? 'Gagal memperbarui status pesanan')
     },
   })
 
@@ -140,9 +144,17 @@ export default function OrderPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 rounded-full border-2 animate-spin"
-            style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {STATUSES.map((s) => (
+            <div key={s.key} className="flex flex-col gap-3 flex-shrink-0" style={{ width: 280 }}>
+              <Skeleton className="h-3" style={{ width: '50%' }} />
+              <div className="rounded-2xl p-4 flex flex-col gap-3" style={cardStyle}>
+                <Skeleton className="h-4" style={{ width: '60%' }} />
+                <Skeleton className="h-3" style={{ width: '80%' }} />
+                <Skeleton className="h-3" style={{ width: '40%' }} />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-2">

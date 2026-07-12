@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, Tag, X, Check } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
+import { useToast } from '../../../hooks/useToast'
+import { Skeleton } from '../../../components/ui/Skeleton'
 
 interface Category {
   id: number
@@ -75,11 +77,11 @@ const btnEdit: React.CSSProperties = {
 
 export default function CategoryPage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const [newName, setNewName] = useState('')
   const [editId, setEditId] = useState<number | null>(null)
   const [editName, setEditName] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [error, setError] = useState('')
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['categories'],
@@ -91,9 +93,9 @@ export default function CategoryPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] })
       setNewName('')
-      setError('')
+      toast.success('Kategori berhasil ditambahkan')
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal membuat kategori'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal membuat kategori'),
   })
 
   const updateMut = useMutation({
@@ -102,8 +104,9 @@ export default function CategoryPage() {
       qc.invalidateQueries({ queryKey: ['categories'] })
       setEditId(null)
       setEditName('')
+      toast.success('Kategori berhasil diperbarui')
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal mengupdate kategori'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal mengupdate kategori'),
   })
 
   const deleteMut = useMutation({
@@ -111,8 +114,9 @@ export default function CategoryPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] })
       setDeleteId(null)
+      toast.success('Kategori berhasil dihapus')
     },
-    onError: (e: AxiosError<{ message: string }>) => setError(e.response?.data?.message ?? 'Gagal menghapus kategori'),
+    onError: (e: AxiosError<{ message: string }>) => toast.error(e.response?.data?.message ?? 'Gagal menghapus kategori'),
   })
 
   function handleCreate(e: React.FormEvent) {
@@ -125,7 +129,6 @@ export default function CategoryPage() {
   function startEdit(cat: Category) {
     setEditId(cat.id)
     setEditName(cat.name)
-    setError('')
   }
 
   function handleUpdate(e: React.FormEvent) {
@@ -174,9 +177,6 @@ export default function CategoryPage() {
             {createMut.isPending ? 'Menyimpan...' : 'Tambah'}
           </button>
         </form>
-        {error && (
-          <p className="text-xs mt-2" style={{ color: '#f87171' }}>{error}</p>
-        )}
       </div>
 
       {/* List */}
@@ -188,8 +188,12 @@ export default function CategoryPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+          <div className="flex flex-col">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-3" style={{ borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
+                <Skeleton className="h-4" style={{ width: `${40 + i * 8}%` }} />
+              </div>
+            ))}
           </div>
         ) : categories.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-2">

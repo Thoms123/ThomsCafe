@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, TableProperties, X, Download, QrCode, Pencil } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
+import { useToast } from '../../../hooks/useToast'
+import { Skeleton } from '../../../components/ui/Skeleton'
 
 interface Table {
   id: number
@@ -41,12 +43,12 @@ const inputStyle: React.CSSProperties = {
 
 export default function TablePage() {
   const qc = useQueryClient()
+  const toast = useToast()
   const [showModal, setShowModal] = useState(false)
   const [editTable, setEditTable] = useState<Table | null>(null)
   const [tableNumber, setTableNumber] = useState('')
   const [qrModal, setQrModal] = useState<Table | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [error, setError] = useState('')
 
   const { data: tables = [], isLoading } = useQuery({
     queryKey: ['tables'],
@@ -62,10 +64,11 @@ export default function TablePage() {
         : api.post('/tables', { table_number: name }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tables'] })
+      toast.success(editTable ? 'Meja berhasil diperbarui' : 'Meja berhasil ditambahkan')
       closeModal()
     },
     onError: (e: AxiosError<{ message: string }>) =>
-      setError(e.response?.data?.message ?? 'Gagal menyimpan meja'),
+      toast.error(e.response?.data?.message ?? 'Gagal menyimpan meja'),
   })
 
   const deleteMut = useMutation({
@@ -73,22 +76,21 @@ export default function TablePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tables'] })
       setDeleteId(null)
+      toast.success('Meja berhasil dihapus')
     },
     onError: (e: AxiosError<{ message: string }>) =>
-      setError(e.response?.data?.message ?? 'Gagal menghapus meja'),
+      toast.error(e.response?.data?.message ?? 'Gagal menghapus meja'),
   })
 
   function openCreate() {
     setEditTable(null)
     setTableNumber('')
-    setError('')
     setShowModal(true)
   }
 
   function openEdit(t: Table) {
     setEditTable(t)
     setTableNumber(t.table_number)
-    setError('')
     setShowModal(true)
   }
 
@@ -96,7 +98,6 @@ export default function TablePage() {
     setShowModal(false)
     setEditTable(null)
     setTableNumber('')
-    setError('')
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -136,9 +137,16 @@ export default function TablePage() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 rounded-full border-2 animate-spin"
-            style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl overflow-hidden flex flex-col" style={cardStyle}>
+              <Skeleton style={{ height: 160, borderRadius: 0 }} />
+              <div className="p-4 flex flex-col gap-3">
+                <Skeleton className="h-3" style={{ width: '30%' }} />
+                <Skeleton className="h-6" style={{ width: '50%' }} />
+              </div>
+            </div>
+          ))}
         </div>
       ) : tables.length === 0 ? (
         <div className="flex flex-col items-center py-20 gap-3 rounded-2xl" style={cardStyle}>
@@ -237,7 +245,6 @@ export default function TablePage() {
                   QR code akan otomatis di-generate
                 </p>
               </div>
-              {error && <p className="text-xs" style={{ color: '#f87171' }}>{error}</p>}
               <div className="flex gap-3 pt-1">
                 <button
                   type="button" onClick={closeModal}

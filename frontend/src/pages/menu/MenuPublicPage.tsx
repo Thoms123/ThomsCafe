@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { UtensilsCrossed, Coffee, ShoppingBag, Minus, Plus, X } from 'lucide-react'
-import axios from 'axios'
+import { motion, useDragControls } from 'framer-motion'
+import api from '../../lib/axios'
 import { useCartStore } from '../../store/cartStore'
-
-const BASE = 'http://localhost:8080/api/v1'
+import { Skeleton } from '../../components/ui/Skeleton'
 
 interface MenuItemPublic {
   id: number
@@ -27,12 +27,12 @@ interface CreateOrderResponse {
 }
 
 function fetchPublicMenu(token: string) {
-  return axios.get<{ data: PublicData }>(`${BASE}/public/menu/${token}`).then((r) => r.data.data)
+  return api.get<{ data: PublicData }>(`/public/menu/${token}`).then((r) => r.data.data)
 }
 
 function createOrder(token: string, customerName: string, items: { menu_id: number; qty: number }[]) {
-  return axios
-    .post<{ data: CreateOrderResponse }>(`${BASE}/public/orders`, {
+  return api
+    .post<{ data: CreateOrderResponse }>('/public/orders', {
       token,
       customer_name: customerName,
       items,
@@ -59,6 +59,7 @@ export default function MenuPublicPage() {
   const [customerName, setCustomerName] = useState('')
 
   const cart = useCartStore()
+  const dragControls = useDragControls()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['public-menu', token],
@@ -81,9 +82,20 @@ export default function MenuPublicPage() {
   })
 
   if (isLoading) {
+    const darkSkeleton: React.CSSProperties = {
+      background: 'linear-gradient(90deg, rgba(0,200,255,0.05) 25%, rgba(0,200,255,0.14) 50%, rgba(0,200,255,0.05) 75%)',
+      backgroundSize: '200% 100%',
+    }
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f1e30' }}>
-        <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: '#00c8ff', borderTopColor: 'transparent' }} />
+      <div className="min-h-screen pt-safe" style={{ background: '#0f1e30' }}>
+        <div className="px-4 py-4">
+          <Skeleton style={{ ...darkSkeleton, height: 36, width: 160 }} />
+        </div>
+        <div className="px-4 pt-6 flex flex-col gap-3">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} style={{ ...darkSkeleton, height: 90, borderRadius: 16 }} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -110,7 +122,7 @@ export default function MenuPublicPage() {
     <div className="min-h-screen" style={{ background: '#0f1e30' }}>
       {/* Header */}
       <div
-        className="sticky top-0 z-10 px-4 py-4 flex items-center justify-between"
+        className="sticky top-0 z-10 px-4 pt-safe pb-4 flex items-center justify-between"
         style={{
           background: 'rgba(15,30,48,0.95)',
           backdropFilter: 'blur(12px)',
@@ -241,7 +253,7 @@ export default function MenuPublicPage() {
 
       {/* Cart bottom bar */}
       {cartCount > 0 && !cartOpen && (
-        <div className="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-3 z-20" style={{ background: 'rgba(15,30,48,0.98)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(0,200,255,0.12)' }}>
+        <div className="fixed bottom-0 left-0 right-0 px-4 pb-safe pt-3 z-20" style={{ background: 'rgba(15,30,48,0.98)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(0,200,255,0.12)' }}>
           <button
             onClick={() => setCartOpen(true)}
             className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl"
@@ -263,11 +275,25 @@ export default function MenuPublicPage() {
       {cartOpen && (
         <>
           <div className="fixed inset-0 z-30" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setCartOpen(false)} />
-          <div
+          <motion.div
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 1 }}
+            dragSnapToOrigin
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 500) setCartOpen(false)
+            }}
             className="fixed bottom-0 left-0 right-0 z-40 flex flex-col"
             style={{ background: '#162848', borderRadius: '24px 24px 0 0', border: '1px solid rgba(0,200,255,0.1)', maxHeight: '90vh' }}
           >
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(0,200,255,0.1)' }}>
+            <div
+              className="relative flex items-center justify-between px-5 py-4 touch-none"
+              style={{ borderBottom: '1px solid rgba(0,200,255,0.1)' }}
+              onPointerDown={(e) => dragControls.start(e)}
+            >
+              <div className="absolute left-1/2 -translate-x-1/2 top-2 rounded-full" style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.25)' }} />
               <p className="text-base font-black text-white">Keranjang</p>
               <button onClick={() => setCartOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,200,255,0.1)', border: '1px solid rgba(0,200,255,0.25)', color: 'rgba(255,255,255,0.6)' }}>
                 <X size={15} />
@@ -319,7 +345,7 @@ export default function MenuPublicPage() {
             </div>
 
             {cart.items.length > 0 && (
-              <div className="px-5 py-4" style={{ borderTop: '1px solid rgba(0,200,255,0.1)' }}>
+              <div className="px-5 pt-4 pb-safe" style={{ borderTop: '1px solid rgba(0,200,255,0.1)' }}>
                 <input
                   type="text"
                   value={customerName}
@@ -347,7 +373,7 @@ export default function MenuPublicPage() {
                 )}
               </div>
             )}
-          </div>
+          </motion.div>
         </>
       )}
     </div>

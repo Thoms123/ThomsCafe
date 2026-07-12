@@ -80,3 +80,34 @@
     transition: background-color 0.2s, color 0.2s;
   }
 }
+
+/* ── Toast enter/exit (Radix drives data-state, we animate off it) ── */
+@keyframes toast-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-slide-out {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+.app-toast[data-state='open'] { animation: toast-slide-in 200ms ease-out; }
+.app-toast[data-state='closed'] { animation: toast-slide-out 150ms ease-in forwards; }
+
+/* ── Loading skeleton ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--accent-dim) 25%, var(--border) 50%, var(--accent-dim) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ── Mobile safe-area (notched devices, requires viewport-fit=cover) ──
+   max() keeps the original design padding as a floor and only grows to
+   make room for a notch or home-indicator, so these can drop straight in
+   place of a plain padding utility without changing normal-device layout. */
+.pt-safe { padding-top: max(1rem, env(safe-area-inset-top)); }
+.pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
