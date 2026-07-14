@@ -33,6 +33,7 @@ type Order struct {
 	TableNumber  string      `json:"table_number"`
 	Status       string      `json:"status"`
 	Total        float64     `json:"total"`
+	CustomerID   *int        `json:"customer_id"`
 	CustomerName *string     `json:"customer_name"`
 	CreatedAt    time.Time   `json:"created_at"`
 	Items        []OrderItem `json:"items"`
@@ -53,7 +54,7 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 
 // Create inserts an order with its items in a single transaction.
 // Prices are snapshotted server-side from the menus table, never trusted from the client.
-func (r *OrderRepository) Create(tableID int, customerName *string, items []OrderItemInput) (*Order, error) {
+func (r *OrderRepository) Create(tableID, customerID int, customerName string, items []OrderItemInput) (*Order, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -81,8 +82,8 @@ func (r *OrderRepository) Create(tableID int, customerName *string, items []Orde
 
 	var orderID int
 	err = tx.QueryRow(
-		`INSERT INTO orders (table_id, status, total, customer_name) VALUES ($1, 'pending', $2, $3) RETURNING id`,
-		tableID, total, customerName,
+		`INSERT INTO orders (table_id, status, total, customer_id, customer_name) VALUES ($1, 'pending', $2, $3, $4) RETURNING id`,
+		tableID, total, customerID, customerName,
 	).Scan(&orderID)
 	if err != nil {
 		return nil, err
@@ -113,7 +114,7 @@ type OrderFilter struct {
 
 func (r *OrderRepository) FindAll(f OrderFilter) ([]Order, error) {
 	query := `
-		SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_name, o.created_at
+		SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.created_at
 		FROM orders o
 		JOIN tables t ON t.id = o.table_id
 		WHERE 1=1
@@ -148,7 +149,7 @@ func (r *OrderRepository) FindAll(f OrderFilter) ([]Order, error) {
 	ids := []int{}
 	for rows.Next() {
 		var o Order
-		if err := rows.Scan(&o.ID, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerName, &o.CreatedAt); err != nil {
+		if err := rows.Scan(&o.ID, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerID, &o.CustomerName, &o.CreatedAt); err != nil {
 			return nil, err
 		}
 		o.Items = []OrderItem{}
@@ -232,11 +233,11 @@ func IsInvalidStatus(err error) bool {
 func (r *OrderRepository) FindByID(id int) (*Order, error) {
 	var o Order
 	err := r.db.QueryRow(
-		`SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_name, o.created_at
+		`SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.created_at
 		 FROM orders o
 		 JOIN tables t ON t.id = o.table_id
 		 WHERE o.id = $1`, id,
-	).Scan(&o.ID, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerName, &o.CreatedAt)
+	).Scan(&o.ID, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerID, &o.CustomerName, &o.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
