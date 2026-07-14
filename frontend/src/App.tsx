@@ -13,6 +13,7 @@ import OrderPage from './pages/dashboard/order/OrderPage'
 import UserPage from './pages/dashboard/user/UserPage'
 import RolePage from './pages/dashboard/role/RolePage'
 import ReportPage from './pages/dashboard/report/ReportPage'
+import CustomerPage from './pages/dashboard/customer/CustomerPage'
 import MenuPublicPage from './pages/menu/MenuPublicPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
 import ProtectedRoute from './components/shared/ProtectedRoute'
@@ -52,6 +53,7 @@ function AnimatedRoutes() {
             <Route path="users" element={<PageTransition><UserPage /></PageTransition>} />
             <Route path="roles" element={<PageTransition><RolePage /></PageTransition>} />
             <Route path="reports" element={<PageTransition><ReportPage /></PageTransition>} />
+            <Route path="customers" element={<PageTransition><CustomerPage /></PageTransition>} />
           </Route>
         </Route>
 
