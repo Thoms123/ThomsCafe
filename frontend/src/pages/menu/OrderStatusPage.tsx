@@ -126,7 +126,7 @@ export default function OrderStatusPage() {
         {/* Status stepper */}
         <div className="flex items-center justify-between mb-8 px-2 max-w-2xl mx-auto">
           {STEPS.map((step, idx) => (
-            <div key={step.key} className="flex items-center flex-1">
+            <div key={step.key} className={`flex items-center ${idx < STEPS.length - 1 ? 'flex-1' : ''}`}>
               <div className="flex flex-col items-center gap-1.5 flex-shrink-0" style={{ width: 64 }}>
                 {idx <= current ? (
                   <CheckCircle2 size={22} style={{ color: '#00c8ff' }} />
