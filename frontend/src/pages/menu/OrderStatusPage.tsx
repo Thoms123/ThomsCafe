@@ -124,7 +124,7 @@ export default function OrderStatusPage() {
         </div>
 
         {/* Status stepper */}
-        <div className="flex items-center justify-between mb-8 px-2">
+        <div className="flex items-center justify-between mb-8 px-2 max-w-sm mx-auto">
           {STEPS.map((step, idx) => (
             <div key={step.key} className="flex items-center flex-1">
               <div className="flex flex-col items-center gap-1.5 flex-shrink-0" style={{ width: 64 }}>
