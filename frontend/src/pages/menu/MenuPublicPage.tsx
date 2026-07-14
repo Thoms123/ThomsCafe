@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { UtensilsCrossed, Coffee, ShoppingBag, Minus, Plus, X } from 'lucide-react'
+import { UtensilsCrossed, Search, ChevronUp, ShoppingBasket, Minus, Plus, X } from 'lucide-react'
 import { motion, useDragControls } from 'framer-motion'
 import api from '../../lib/axios'
 import { useCartStore } from '../../store/cartStore'
@@ -25,6 +25,8 @@ interface PublicData {
 interface CreateOrderResponse {
   id: number
 }
+
+const ACCENT = '#e8491d'
 
 function fetchPublicMenu(token: string) {
   return api.get<{ data: PublicData }>(`/public/menu/${token}`).then((r) => r.data.data)
@@ -57,6 +59,8 @@ export default function MenuPublicPage() {
   const navigate = useNavigate()
   const [cartOpen, setCartOpen] = useState(false)
   const [customerName, setCustomerName] = useState('')
+  const [activeCat, setActiveCat] = useState('Semua')
+  const [showScrollTop, setShowScrollTop] = useState(false)
 
   const cart = useCartStore()
   const dragControls = useDragControls()
@@ -73,6 +77,12 @@ export default function MenuPublicPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 400)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const orderMutation = useMutation({
     mutationFn: () => createOrder(token!, customerName.trim(), cart.items.map((i) => ({ menu_id: i.menuId, qty: i.qty }))),
     onSuccess: (order) => {
@@ -82,18 +92,14 @@ export default function MenuPublicPage() {
   })
 
   if (isLoading) {
-    const darkSkeleton: React.CSSProperties = {
-      background: 'linear-gradient(90deg, rgba(0,200,255,0.05) 25%, rgba(0,200,255,0.14) 50%, rgba(0,200,255,0.05) 75%)',
-      backgroundSize: '200% 100%',
-    }
     return (
-      <div className="min-h-screen pt-safe" style={{ background: '#0f1e30' }}>
+      <div className="min-h-screen pt-safe" style={{ background: '#fff' }}>
         <div className="px-4 py-4">
-          <Skeleton style={{ ...darkSkeleton, height: 36, width: 160 }} />
+          <Skeleton style={{ height: 36, width: 160 }} />
         </div>
-        <div className="px-4 pt-6 flex flex-col gap-3">
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} style={{ ...darkSkeleton, height: 90, borderRadius: 16 }} />
+        <div className="px-4 pt-6 grid grid-cols-2 gap-3">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} style={{ height: 180, borderRadius: 16 }} />
           ))}
         </div>
       </div>
@@ -102,138 +108,124 @@ export default function MenuPublicPage() {
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6" style={{ background: '#0f1e30' }}>
-        <UtensilsCrossed size={48} style={{ color: '#00c8ff', opacity: 0.5 }} />
-        <h1 className="text-xl font-black text-white">Meja tidak ditemukan</h1>
-        <p className="text-sm text-center" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          QR code tidak valid atau sudah tidak aktif.
-        </p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6" style={{ background: '#fff' }}>
+        <UtensilsCrossed size={48} style={{ color: ACCENT, opacity: 0.4 }} />
+        <h1 className="text-xl font-black text-gray-900">Meja tidak ditemukan</h1>
+        <p className="text-sm text-center text-gray-500">QR code tidak valid atau sudah tidak aktif.</p>
       </div>
     )
   }
 
   const grouped = groupByCategory(data.menus)
   const categories = Object.keys(grouped).sort()
+  const visibleCategories = activeCat === 'Semua' ? categories : categories.filter((c) => c === activeCat)
 
   const cartCount = cart.items.reduce((sum, i) => sum + i.qty, 0)
   const cartTotal = cart.items.reduce((sum, i) => sum + i.qty * i.price, 0)
 
   return (
-    <div className="min-h-screen" style={{ background: '#0f1e30' }}>
+    <div className="min-h-screen" style={{ background: '#fff' }}>
       {/* Header */}
-      <div
-        className="sticky top-0 z-10 px-4 pt-safe pb-4 flex items-center justify-between"
-        style={{
-          background: 'rgba(15,30,48,0.95)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(0,200,255,0.12)',
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'rgba(0,200,255,0.1)', border: '1px solid rgba(0,200,255,0.25)' }}
-          >
-            <Coffee size={17} style={{ color: '#00c8ff' }} />
-          </div>
-          <div>
-            <p className="font-black text-sm leading-tight text-white">ThomsCafe</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>POS System</p>
-          </div>
+      <div className="sticky top-0 z-20 px-4 pt-safe pb-3 flex items-center justify-between bg-white/95 backdrop-blur border-b border-gray-100">
+        <div>
+          <p className="font-black text-base leading-tight text-gray-900">ThomsCafe</p>
+          <p className="text-xs text-gray-400 mt-0.5">Meja {data.table.table_number} · Silakan pilih menu</p>
         </div>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
+          <Search size={16} />
+        </div>
+      </div>
 
-        {/* Table badge */}
+      {/* Category tabs */}
+      <div className="sticky top-[60px] z-10 flex items-stretch bg-white border-b border-gray-100">
         <div
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-          style={{ background: 'rgba(0,200,255,0.12)', border: '1px solid rgba(0,200,255,0.3)' }}
+          className="flex-shrink-0 flex items-center gap-1 px-3 text-[11px] font-extrabold uppercase tracking-wide border-r border-gray-100"
+          style={{ color: ACCENT }}
         >
-          <span className="text-xs font-medium" style={{ color: 'rgba(0,200,255,0.8)' }}>Meja</span>
-          <span className="text-sm font-black" style={{ color: '#00c8ff' }}>{data.table.table_number}</span>
+          Kategori
+        </div>
+        <div className="flex-1 flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          {['Semua', ...categories].map((c) => (
+            <button
+              key={c}
+              onClick={() => setActiveCat(c)}
+              className="flex-shrink-0 h-[42px] px-3.5 text-xs font-bold whitespace-nowrap border-b-[2.5px]"
+              style={{
+                color: activeCat === c ? ACCENT : '#9ca3af',
+                borderColor: activeCat === c ? ACCENT : 'transparent',
+              }}
+            >
+              {c}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Welcome */}
-      <div className="px-4 pt-6 pb-2">
-        <h1 className="text-2xl font-black text-white">Halo! 👋</h1>
-        <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Kamu sedang di <span style={{ color: '#00c8ff', fontWeight: 700 }}>Meja {data.table.table_number}</span>.
-          Berikut menu yang tersedia.
+      <div className="px-4 pt-4 pb-1">
+        <h1 className="text-xl font-black text-gray-900">Halo! 👋</h1>
+        <p className="text-xs text-gray-400 mt-1">
+          Kamu di <span style={{ color: ACCENT, fontWeight: 800 }}>Meja {data.table.table_number}</span>. Ketuk menu untuk lihat detail.
         </p>
       </div>
 
       {/* Menu per category */}
-      <div className="px-4 pb-32 flex flex-col gap-8 mt-4">
+      <div className="pb-32">
         {categories.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-3">
-            <UtensilsCrossed size={36} style={{ color: 'rgba(255,255,255,0.2)' }} />
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Menu belum tersedia</p>
+            <UtensilsCrossed size={36} className="text-gray-200" />
+            <p className="text-sm text-gray-400">Menu belum tersedia</p>
           </div>
         ) : (
-          categories.map((category) => (
+          visibleCategories.map((category) => (
             <div key={category}>
-              <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(0,200,255,0.7)' }}>
-                {category}
-              </h2>
-              <div className="flex flex-col gap-3">
+              <h2 className="px-4 pt-4 pb-2 text-[11px] font-black uppercase tracking-widest text-gray-300">{category}</h2>
+              <div className="grid grid-cols-2 gap-3 px-4">
                 {grouped[category].map((item) => {
                   const inCart = cart.items.find((i) => i.menuId === item.id)
                   return (
-                    <div
-                      key={item.id}
-                      className="flex gap-3 rounded-2xl overflow-hidden"
-                      style={{
-                        background: 'rgba(22,40,64,0.8)',
-                        border: '1px solid rgba(0,200,255,0.1)',
-                      }}
-                    >
-                      {/* Image */}
-                      <div style={{ width: 90, height: 90, flexShrink: 0, background: 'rgba(0,200,255,0.05)' }}>
+                    <div key={item.id}>
+                      <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 relative">
                         {item.image ? (
                           <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <UtensilsCrossed size={24} style={{ color: 'rgba(255,255,255,0.15)' }} />
+                            <UtensilsCrossed size={24} className="text-gray-300" />
                           </div>
                         )}
                       </div>
-
-                      {/* Info */}
-                      <div className="flex-1 py-3 pr-3 flex flex-col justify-between">
-                        <p className="text-sm font-bold text-white leading-tight">{item.name}</p>
-                        <div className="flex items-center justify-between">
-                          <p className="text-base font-black" style={{ color: '#00c8ff' }}>
-                            {formatPrice(item.price)}
-                          </p>
-                          {inCart ? (
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => cart.updateQty(item.id, inCart.qty - 1)}
-                                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                                style={{ background: 'rgba(0,200,255,0.1)', border: '1px solid rgba(0,200,255,0.25)', color: '#00c8ff' }}
-                              >
-                                <Minus size={13} />
-                              </button>
-                              <span className="text-sm font-black text-white w-4 text-center">{inCart.qty}</span>
-                              <button
-                                onClick={() => cart.updateQty(item.id, inCart.qty + 1)}
-                                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                                style={{ background: '#00c8ff', color: '#0f1e30' }}
-                              >
-                                <Plus size={13} />
-                              </button>
-                            </div>
-                          ) : (
+                      <p className="text-[12.5px] font-extrabold uppercase leading-snug mt-2 min-h-[32px] text-gray-900">{item.name}</p>
+                      <p className="text-sm font-black text-gray-900 mt-0.5">{formatPrice(item.price)}</p>
+                      <div className="mt-2">
+                        {inCart ? (
+                          <div className="flex items-center justify-between rounded-full border-[1.5px] px-2 py-1" style={{ borderColor: ACCENT }}>
                             <button
-                              onClick={() =>
-                                cart.addItem({ menuId: item.id, name: item.name, price: item.price, image: item.image })
-                              }
-                              className="px-3 py-1.5 rounded-lg text-xs font-black"
-                              style={{ background: '#00c8ff', color: '#0f1e30' }}
+                              onClick={() => cart.updateQty(item.id, inCart.qty - 1)}
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-white"
+                              style={{ background: ACCENT }}
                             >
-                              Tambah
+                              <Minus size={13} />
                             </button>
-                          )}
-                        </div>
+                            <span className="text-sm font-black text-gray-900">{inCart.qty}</span>
+                            <button
+                              onClick={() => cart.updateQty(item.id, inCart.qty + 1)}
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-white"
+                              style={{ background: ACCENT }}
+                            >
+                              <Plus size={13} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              cart.addItem({ menuId: item.id, name: item.name, price: item.price, image: item.image })
+                            }
+                            className="w-full py-2 rounded-full text-xs font-extrabold border-[1.5px]"
+                            style={{ borderColor: ACCENT, color: ACCENT }}
+                          >
+                            Tambah
+                          </button>
+                        )}
                       </div>
                     </div>
                   )
@@ -246,27 +238,42 @@ export default function MenuPublicPage() {
 
       {/* Footer */}
       <div className="pb-6 text-center">
-        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
-          Silakan hubungi pelayan untuk memesan
-        </p>
+        <p className="text-xs text-gray-300">Silakan hubungi pelayan untuk memesan</p>
       </div>
+
+      {/* Scroll to top */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed z-20 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg"
+          style={{ background: '#2b2b2b', right: 16, bottom: cartCount > 0 && !cartOpen ? 96 : 24 }}
+        >
+          <ChevronUp size={18} />
+        </button>
+      )}
 
       {/* Cart bottom bar */}
       {cartCount > 0 && !cartOpen && (
-        <div className="fixed bottom-0 left-0 right-0 px-4 pb-safe pt-3 z-20" style={{ background: 'rgba(15,30,48,0.98)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(0,200,255,0.12)' }}>
-          <button
-            onClick={() => setCartOpen(true)}
-            className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl"
-            style={{ background: '#00c8ff' }}
-          >
-            <span className="flex items-center gap-2" style={{ color: '#0f1e30' }}>
-              <ShoppingBag size={17} />
-              <span className="text-sm font-black">Lihat Keranjang</span>
-              <span className="text-xs font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(0,0,0,0.15)' }}>
-                {cartCount}
-              </span>
+        <div className="fixed bottom-0 left-0 right-0 pb-safe z-20" style={{ background: ACCENT }}>
+          <button onClick={() => setCartOpen(true)} className="w-full flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-9 h-9 rounded-full flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                <ShoppingBasket size={16} />
+                <span
+                  className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-black"
+                  style={{ background: '#fff', color: ACCENT }}
+                >
+                  {cartCount}
+                </span>
+              </div>
+              <div className="text-left text-white">
+                <p className="text-[10.5px] opacity-85">Total</p>
+                <p className="text-sm font-black">{formatPrice(cartTotal)}</p>
+              </div>
+            </div>
+            <span className="px-4 py-2.5 rounded-xl text-xs font-black text-white" style={{ background: 'rgba(0,0,0,0.22)' }}>
+              CHECK OUT ({cartCount})
             </span>
-            <span className="text-sm font-black" style={{ color: '#0f1e30' }}>{formatPrice(cartTotal)}</span>
           </button>
         </div>
       )}
@@ -274,7 +281,7 @@ export default function MenuPublicPage() {
       {/* Cart drawer */}
       {cartOpen && (
         <>
-          <div className="fixed inset-0 z-30" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setCartOpen(false)} />
+          <div className="fixed inset-0 z-30" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setCartOpen(false)} />
           <motion.div
             drag="y"
             dragControls={dragControls}
@@ -285,17 +292,13 @@ export default function MenuPublicPage() {
             onDragEnd={(_, info) => {
               if (info.offset.y > 100 || info.velocity.y > 500) setCartOpen(false)
             }}
-            className="fixed bottom-0 left-0 right-0 z-40 flex flex-col"
-            style={{ background: '#162848', borderRadius: '24px 24px 0 0', border: '1px solid rgba(0,200,255,0.1)', maxHeight: '90vh' }}
+            className="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-white"
+            style={{ borderRadius: '24px 24px 0 0', border: '1px solid #f1f1f1', maxHeight: '90vh' }}
           >
-            <div
-              className="relative flex items-center justify-between px-5 py-4 touch-none"
-              style={{ borderBottom: '1px solid rgba(0,200,255,0.1)' }}
-              onPointerDown={(e) => dragControls.start(e)}
-            >
-              <div className="absolute left-1/2 -translate-x-1/2 top-2 rounded-full" style={{ width: 36, height: 4, background: 'rgba(255,255,255,0.25)' }} />
-              <p className="text-base font-black text-white">Keranjang</p>
-              <button onClick={() => setCartOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(0,200,255,0.1)', border: '1px solid rgba(0,200,255,0.25)', color: 'rgba(255,255,255,0.6)' }}>
+            <div className="relative flex items-center justify-between px-5 py-4 touch-none border-b border-gray-100" onPointerDown={(e) => dragControls.start(e)}>
+              <div className="absolute left-1/2 -translate-x-1/2 top-2 rounded-full bg-gray-200" style={{ width: 36, height: 4 }} />
+              <p className="text-base font-black text-gray-900">Pesananmu</p>
+              <button onClick={() => setCartOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100 text-gray-500">
                 <X size={15} />
               </button>
             </div>
@@ -303,38 +306,38 @@ export default function MenuPublicPage() {
             <div className="overflow-y-auto px-5 py-2 flex-1">
               {cart.items.length === 0 ? (
                 <div className="flex flex-col items-center py-10 gap-2">
-                  <ShoppingBag size={32} style={{ color: 'rgba(255,255,255,0.2)' }} />
-                  <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Keranjang masih kosong</p>
+                  <ShoppingBasket size={32} className="text-gray-200" />
+                  <p className="text-sm text-gray-400">Keranjang masih kosong</p>
                 </div>
               ) : (
                 cart.items.map((item) => (
-                  <div key={item.menuId} className="flex items-center gap-3 py-3" style={{ borderBottom: '1px solid rgba(0,200,255,0.08)' }}>
-                    <div style={{ width: 48, height: 48, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'rgba(0,200,255,0.05)' }}>
+                  <div key={item.menuId} className="flex items-center gap-3 py-3 border-b border-gray-50">
+                    <div style={{ width: 48, height: 48, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: '#f4f4f5' }}>
                       {item.image ? (
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <UtensilsCrossed size={18} style={{ color: 'rgba(255,255,255,0.15)' }} />
+                          <UtensilsCrossed size={18} className="text-gray-300" />
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{item.name}</p>
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{formatPrice(item.price)}</p>
+                      <p className="text-sm font-bold text-gray-900 truncate">{item.name}</p>
+                      <p className="text-xs text-gray-400">{formatPrice(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={() => cart.updateQty(item.menuId, item.qty - 1)}
                         className="w-6 h-6 rounded-md flex items-center justify-center"
-                        style={{ background: 'rgba(0,200,255,0.1)', border: '1px solid rgba(0,200,255,0.25)', color: '#00c8ff' }}
+                        style={{ background: '#fdece5', color: ACCENT }}
                       >
                         <Minus size={11} />
                       </button>
-                      <span className="text-sm font-black text-white w-4 text-center">{item.qty}</span>
+                      <span className="text-sm font-black text-gray-900 w-4 text-center">{item.qty}</span>
                       <button
                         onClick={() => cart.updateQty(item.menuId, item.qty + 1)}
-                        className="w-6 h-6 rounded-md flex items-center justify-center"
-                        style={{ background: '#00c8ff', color: '#0f1e30' }}
+                        className="w-6 h-6 rounded-md flex items-center justify-center text-white"
+                        style={{ background: ACCENT }}
                       >
                         <Plus size={11} />
                       </button>
@@ -345,31 +348,28 @@ export default function MenuPublicPage() {
             </div>
 
             {cart.items.length > 0 && (
-              <div className="px-5 pt-4 pb-safe" style={{ borderTop: '1px solid rgba(0,200,255,0.1)' }}>
+              <div className="px-5 pt-4 pb-safe border-t border-gray-100">
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Nama pemesan (opsional)"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm mb-3 text-white"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(0,200,255,0.15)', outline: 'none' }}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm mb-3 text-gray-900 outline-none border border-gray-200"
                 />
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.6)' }}>Total ({cartCount} item)</span>
-                  <span className="text-lg font-black" style={{ color: '#00c8ff' }}>{formatPrice(cartTotal)}</span>
+                  <span className="text-sm font-bold text-gray-500">Total ({cartCount} item)</span>
+                  <span className="text-lg font-black" style={{ color: ACCENT }}>{formatPrice(cartTotal)}</span>
                 </div>
                 <button
                   onClick={() => orderMutation.mutate()}
                   disabled={orderMutation.isPending}
-                  className="w-full py-3.5 rounded-2xl text-sm font-black"
-                  style={{ background: '#00c8ff', color: '#0f1e30', opacity: orderMutation.isPending ? 0.6 : 1 }}
+                  className="w-full py-3.5 rounded-2xl text-sm font-black text-white"
+                  style={{ background: ACCENT, opacity: orderMutation.isPending ? 0.6 : 1 }}
                 >
                   {orderMutation.isPending ? 'Mengirim pesanan...' : 'Pesan Sekarang'}
                 </button>
                 {orderMutation.isError && (
-                  <p className="text-xs text-center mt-2" style={{ color: '#f87171' }}>
-                    Gagal membuat pesanan. Coba lagi.
-                  </p>
+                  <p className="text-xs text-center mt-2 text-red-500">Gagal membuat pesanan. Coba lagi.</p>
                 )}
               </div>
             )}
