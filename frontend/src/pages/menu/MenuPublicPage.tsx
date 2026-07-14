@@ -32,15 +32,24 @@ function fetchPublicMenu(token: string) {
   return api.get<{ data: PublicData }>(`/public/menu/${token}`).then((r) => r.data.data)
 }
 
-function createOrder(token: string, customerName: string, items: { menu_id: number; qty: number }[]) {
+function createOrder(
+  token: string,
+  customerName: string,
+  phone: string,
+  items: { menu_id: number; qty: number }[]
+) {
   return api
     .post<{ data: CreateOrderResponse }>('/public/orders', {
       token,
       customer_name: customerName,
+      phone,
       items,
     })
     .then((r) => r.data.data)
 }
+
+// Matches the backend's phoneRegex: Indonesian mobile numbers (08xxx / 628xxx / +628xxx).
+const PHONE_REGEX = /^(\+62|62|0)8[0-9]{7,11}$/
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
@@ -59,6 +68,7 @@ export default function MenuPublicPage() {
   const navigate = useNavigate()
   const [cartOpen, setCartOpen] = useState(false)
   const [customerName, setCustomerName] = useState('')
+  const [phone, setPhone] = useState('')
   const [activeCat, setActiveCat] = useState('Semua')
   const [showScrollTop, setShowScrollTop] = useState(false)
 
@@ -84,12 +94,21 @@ export default function MenuPublicPage() {
   }, [])
 
   const orderMutation = useMutation({
-    mutationFn: () => createOrder(token!, customerName.trim(), cart.items.map((i) => ({ menu_id: i.menuId, qty: i.qty }))),
+    mutationFn: () =>
+      createOrder(
+        token!,
+        customerName.trim(),
+        phone.trim(),
+        cart.items.map((i) => ({ menu_id: i.menuId, qty: i.qty }))
+      ),
     onSuccess: (order) => {
       cart.clear()
       navigate(`/order/${order.id}/status`)
     },
   })
+
+  const isPhoneValid = PHONE_REGEX.test(phone.trim())
+  const canSubmitOrder = customerName.trim().length > 0 && isPhoneValid && !orderMutation.isPending
 
   if (isLoading) {
     return (
@@ -353,18 +372,28 @@ export default function MenuPublicPage() {
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Nama pemesan (opsional)"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm mb-3 text-gray-900 outline-none border border-gray-200"
+                  placeholder="Nama pemesan"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm mb-2 text-gray-900 outline-none border border-gray-200"
                 />
-                <div className="flex items-center justify-between mb-4">
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="No. HP (mis. 08123456789)"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm mb-1 text-gray-900 outline-none border border-gray-200"
+                />
+                {phone.trim().length > 0 && !isPhoneValid && (
+                  <p className="text-xs mb-2 text-red-500">Nomor HP tidak valid</p>
+                )}
+                <div className="flex items-center justify-between mt-3 mb-4">
                   <span className="text-sm font-bold text-gray-500">Total ({cartCount} item)</span>
                   <span className="text-lg font-black" style={{ color: ACCENT }}>{formatPrice(cartTotal)}</span>
                 </div>
                 <button
                   onClick={() => orderMutation.mutate()}
-                  disabled={orderMutation.isPending}
+                  disabled={!canSubmitOrder}
                   className="w-full py-3.5 rounded-2xl text-sm font-black text-white"
-                  style={{ background: ACCENT, opacity: orderMutation.isPending ? 0.6 : 1 }}
+                  style={{ background: ACCENT, opacity: canSubmitOrder ? 1 : 0.5 }}
                 >
                   {orderMutation.isPending ? 'Mengirim pesanan...' : 'Pesan Sekarang'}
                 </button>

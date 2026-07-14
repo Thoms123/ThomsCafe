@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -10,14 +11,32 @@ import (
 	"pos-cafe/pkg/response"
 )
 
-type OrderHandler struct {
-	orderRepo *repository.OrderRepository
-	tableRepo *repository.TableRepository
-	hub       *ws.Hub
+// phoneRegex accepts Indonesian mobile numbers: 08xxxxxxxxx, 628xxxxxxxxx, +628xxxxxxxxx.
+var phoneRegex = regexp.MustCompile(`^(\+62|62|0)8[0-9]{7,11}$`)
+
+// normalizePhone collapses the +62/62/0 prefixes phoneRegex accepts into a single
+// canonical form (leading 0), so the same person typing their number differently
+// across visits still resolves to one customer row instead of splitting into several.
+func normalizePhone(phone string) string {
+	switch {
+	case strings.HasPrefix(phone, "+62"):
+		return "0" + phone[3:]
+	case strings.HasPrefix(phone, "62"):
+		return "0" + phone[2:]
+	default:
+		return phone
+	}
 }
 
-func NewOrderHandler(orderRepo *repository.OrderRepository, tableRepo *repository.TableRepository, hub *ws.Hub) *OrderHandler {
-	return &OrderHandler{orderRepo: orderRepo, tableRepo: tableRepo, hub: hub}
+type OrderHandler struct {
+	orderRepo    *repository.OrderRepository
+	tableRepo    *repository.TableRepository
+	customerRepo *repository.CustomerRepository
+	hub          *ws.Hub
+}
+
+func NewOrderHandler(orderRepo *repository.OrderRepository, tableRepo *repository.TableRepository, customerRepo *repository.CustomerRepository, hub *ws.Hub) *OrderHandler {
+	return &OrderHandler{orderRepo: orderRepo, tableRepo: tableRepo, customerRepo: customerRepo, hub: hub}
 }
 
 // Create — public endpoint, no auth required
@@ -26,7 +45,8 @@ func NewOrderHandler(orderRepo *repository.OrderRepository, tableRepo *repositor
 func (h *OrderHandler) Create(c *gin.Context) {
 	var req struct {
 		Token        string `json:"token" binding:"required"`
-		CustomerName string `json:"customer_name"`
+		CustomerName string `json:"customer_name" binding:"required"`
+		Phone        string `json:"phone" binding:"required"`
 		Items        []struct {
 			MenuID int `json:"menu_id" binding:"required"`
 			Qty    int `json:"qty" binding:"required,min=1"`
@@ -36,6 +56,18 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		response.ValidationError(c, err)
 		return
 	}
+
+	customerName := strings.TrimSpace(req.CustomerName)
+	phone := strings.TrimSpace(req.Phone)
+	if customerName == "" {
+		response.BadRequest(c, "Nama pemesan wajib diisi")
+		return
+	}
+	if !phoneRegex.MatchString(phone) {
+		response.BadRequest(c, "Nomor HP tidak valid")
+		return
+	}
+	phone = normalizePhone(phone)
 
 	table, err := h.tableRepo.FindByToken(req.Token)
 	if err != nil {
@@ -52,12 +84,13 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		items[i] = repository.OrderItemInput{MenuID: it.MenuID, Qty: it.Qty}
 	}
 
-	var customerName *string
-	if name := strings.TrimSpace(req.CustomerName); name != "" {
-		customerName = &name
+	customer, err := h.customerRepo.FindOrCreateByPhone(customerName, phone)
+	if err != nil {
+		response.InternalError(c, "Failed to save customer")
+		return
 	}
 
-	order, err := h.orderRepo.Create(table.ID, customerName, items)
+	order, err := h.orderRepo.Create(table.ID, customer.ID, customerName, items)
 	if err != nil {
 		if repository.IsMenuNotFound(err) {
 			response.BadRequest(c, "One or more menu items were not found")
