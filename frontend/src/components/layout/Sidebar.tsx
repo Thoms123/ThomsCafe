@@ -10,6 +10,7 @@ import {
   Users,
   ShieldCheck,
   BarChart3,
+  Contact,
   LogOut,
   Sun,
   Moon,
@@ -39,6 +40,7 @@ const navItems = [
   { label: 'Pesanan',    href: '/dashboard/orders',      permission: 'order:read',     icon: ShoppingBag },
   { label: 'Pengguna',   href: '/dashboard/users',       permission: 'user:read',      icon: Users },
   { label: 'Role & Izin', href: '/dashboard/roles',      permission: 'role:manage',    icon: ShieldCheck },
+  { label: 'Pelanggan',  href: '/dashboard/customers',   permission: 'customer:read',  icon: Contact },
   { label: 'Laporan',    href: '/dashboard/reports',     permission: 'report:read',    icon: BarChart3 },
 ]
 

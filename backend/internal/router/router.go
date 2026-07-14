@@ -46,6 +46,7 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	menuHandler := handler.NewMenuHandler(menuRepo, cld)
 	tableHandler := handler.NewTableHandler(tableRepo, menuRepo)
 	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo, customerRepo, hub)
+	customerHandler := handler.NewCustomerHandler(customerRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	roleHandler := handler.NewRoleHandler(roleRepo)
 	reportHandler := handler.NewReportHandler(reportRepo)
@@ -107,6 +108,9 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	protected.POST("/roles", middleware.RequirePermission("role:manage"), roleHandler.Create)
 	protected.PUT("/roles/:id/permissions", middleware.RequirePermission("role:manage"), roleHandler.UpdatePermissions)
 	protected.GET("/permissions", middleware.RequirePermission("role:manage"), roleHandler.ListPermissions)
+
+	// Customers
+	protected.GET("/customers", middleware.RequirePermission("customer:read"), customerHandler.List)
 
 	// Reports
 	protected.GET("/reports/sales", middleware.RequirePermission("report:read"), reportHandler.Sales)
