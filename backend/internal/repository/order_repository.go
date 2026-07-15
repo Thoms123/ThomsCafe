@@ -25,6 +25,7 @@ type OrderItem struct {
 	MenuName string  `json:"menu_name"`
 	Qty      int     `json:"qty"`
 	Price    float64 `json:"price"`
+	Note     string  `json:"note"`
 }
 
 type Order struct {
@@ -42,6 +43,7 @@ type Order struct {
 type OrderItemInput struct {
 	MenuID int
 	Qty    int
+	Note   string
 }
 
 type OrderRepository struct {
@@ -91,8 +93,8 @@ func (r *OrderRepository) Create(tableID, customerID int, customerName string, i
 
 	for i, item := range items {
 		_, err = tx.Exec(
-			`INSERT INTO order_items (order_id, menu_id, qty, price) VALUES ($1, $2, $3, $4)`,
-			orderID, item.MenuID, item.Qty, prices[i],
+			`INSERT INTO order_items (order_id, menu_id, qty, price, note) VALUES ($1, $2, $3, $4, $5)`,
+			orderID, item.MenuID, item.Qty, prices[i], item.Note,
 		)
 		if err != nil {
 			return nil, err
@@ -187,7 +189,7 @@ func (r *OrderRepository) loadOrders(rows *sql.Rows) ([]Order, error) {
 	}
 
 	itemRows, err := r.db.Query(
-		`SELECT oi.id, oi.order_id, oi.menu_id, m.name, oi.qty, oi.price
+		`SELECT oi.id, oi.order_id, oi.menu_id, m.name, oi.qty, oi.price, oi.note
 		 FROM order_items oi
 		 JOIN menus m ON m.id = oi.menu_id
 		 WHERE oi.order_id = ANY($1)
@@ -201,7 +203,7 @@ func (r *OrderRepository) loadOrders(rows *sql.Rows) ([]Order, error) {
 	itemsByOrder := make(map[int][]OrderItem)
 	for itemRows.Next() {
 		var it OrderItem
-		if err := itemRows.Scan(&it.ID, &it.OrderID, &it.MenuID, &it.MenuName, &it.Qty, &it.Price); err != nil {
+		if err := itemRows.Scan(&it.ID, &it.OrderID, &it.MenuID, &it.MenuName, &it.Qty, &it.Price, &it.Note); err != nil {
 			return nil, err
 		}
 		itemsByOrder[it.OrderID] = append(itemsByOrder[it.OrderID], it)
@@ -269,7 +271,7 @@ func (r *OrderRepository) FindByID(id int) (*Order, error) {
 	}
 
 	rows, err := r.db.Query(
-		`SELECT oi.id, oi.order_id, oi.menu_id, m.name, oi.qty, oi.price
+		`SELECT oi.id, oi.order_id, oi.menu_id, m.name, oi.qty, oi.price, oi.note
 		 FROM order_items oi
 		 JOIN menus m ON m.id = oi.menu_id
 		 WHERE oi.order_id = $1
@@ -283,7 +285,7 @@ func (r *OrderRepository) FindByID(id int) (*Order, error) {
 	var items []OrderItem
 	for rows.Next() {
 		var it OrderItem
-		if err := rows.Scan(&it.ID, &it.OrderID, &it.MenuID, &it.MenuName, &it.Qty, &it.Price); err != nil {
+		if err := rows.Scan(&it.ID, &it.OrderID, &it.MenuID, &it.MenuName, &it.Qty, &it.Price, &it.Note); err != nil {
 			return nil, err
 		}
 		items = append(items, it)

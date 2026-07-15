@@ -13,6 +13,7 @@ interface OrderItem {
   menu_name: string
   qty: number
   price: number
+  note: string
 }
 
 interface Order {
@@ -200,9 +201,16 @@ export default function OrderPage() {
 
                         <div className="flex flex-col gap-1">
                           {order.items.map((item) => (
-                            <p key={item.id} className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                              {item.qty}x {item.menu_name}
-                            </p>
+                            <div key={item.id}>
+                              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                {item.qty}x {item.menu_name}
+                              </p>
+                              {item.note && (
+                                <p className="text-xs italic pl-3" style={{ color: 'var(--text-muted)' }}>
+                                  catatan: {item.note}
+                                </p>
+                              )}
+                            </div>
                           ))}
                         </div>
 
