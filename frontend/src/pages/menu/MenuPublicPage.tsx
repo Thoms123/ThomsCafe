@@ -123,6 +123,8 @@ export default function MenuPublicPage() {
   const [activeCat, setActiveCat] = useState('Semua')
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [notesOpen, setNotesOpen] = useState<Set<number>>(new Set())
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const cart = useCartStore()
   const dragControls = useDragControls()
@@ -192,7 +194,12 @@ export default function MenuPublicPage() {
     )
   }
 
-  const grouped = groupByCategory(data.menus)
+  // Tabs are always built from the full catalog so they don't shuffle while searching.
+  const allCategories = Object.keys(groupByCategory(data.menus)).sort()
+
+  const query = searchQuery.trim().toLowerCase()
+  const searchedMenus = query ? data.menus.filter((m) => m.name.toLowerCase().includes(query)) : data.menus
+  const grouped = groupByCategory(searchedMenus)
   const categories = Object.keys(grouped).sort()
   const visibleCategories = activeCat === 'Semua' ? categories : categories.filter((c) => c === activeCat)
 
@@ -202,19 +209,46 @@ export default function MenuPublicPage() {
   return (
     <div className="min-h-screen" style={{ background: '#fff' }}>
       {/* Header */}
-      <div className="sticky top-0 z-20 px-4 pt-safe pb-3 flex items-center justify-between bg-white/95 backdrop-blur border-b border-gray-100">
-        <div>
-          <p className="font-black text-base leading-tight text-gray-900">ThomsCafe</p>
-          <p className="text-xs text-gray-400 mt-0.5">Meja {data.table.table_number} · Silakan pilih menu</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/order/history" className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
-            <History size={16} />
-          </Link>
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
-            <Search size={16} />
-          </div>
-        </div>
+      <div className="sticky top-0 z-20 px-4 pt-safe pb-3 flex items-center gap-3 bg-white/95 backdrop-blur border-b border-gray-100">
+        {searchOpen ? (
+          <>
+            <input
+              autoFocus
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari menu..."
+              className="flex-1 px-3 py-2 rounded-xl text-sm text-gray-900 outline-none border border-gray-200"
+            />
+            <button
+              onClick={() => {
+                setSearchOpen(false)
+                setSearchQuery('')
+              }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500 flex-shrink-0"
+            >
+              <X size={16} />
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-base leading-tight text-gray-900">ThomsCafe</p>
+              <p className="text-xs text-gray-400 mt-0.5">Meja {data.table.table_number} · Silakan pilih menu</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Link to="/order/history" className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
+                <History size={16} />
+              </Link>
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500"
+              >
+                <Search size={16} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Category tabs */}
@@ -226,7 +260,7 @@ export default function MenuPublicPage() {
           Kategori
         </div>
         <div className="flex-1 flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {['Semua', ...categories].map((c) => (
+          {['Semua', ...allCategories].map((c) => (
             <button
               key={c}
               onClick={() => setActiveCat(c)}
@@ -253,9 +287,11 @@ export default function MenuPublicPage() {
       {/* Menu per category */}
       <div className="pb-32">
         {categories.length === 0 ? (
-          <div className="flex flex-col items-center py-16 gap-3">
+          <div className="flex flex-col items-center py-16 gap-3 px-6 text-center">
             <UtensilsCrossed size={36} className="text-gray-200" />
-            <p className="text-sm text-gray-400">Menu belum tersedia</p>
+            <p className="text-sm text-gray-400">
+              {query ? `Menu "${searchQuery.trim()}" tidak ditemukan` : 'Menu belum tersedia'}
+            </p>
           </div>
         ) : (
           visibleCategories.map((category) => (
