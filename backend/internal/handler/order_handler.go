@@ -48,8 +48,9 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		CustomerName string `json:"customer_name" binding:"required"`
 		Phone        string `json:"phone" binding:"required"`
 		Items        []struct {
-			MenuID int `json:"menu_id" binding:"required"`
-			Qty    int `json:"qty" binding:"required,min=1"`
+			MenuID int    `json:"menu_id" binding:"required"`
+			Qty    int    `json:"qty" binding:"required,min=1"`
+			Note   string `json:"note" binding:"omitempty,max=500"`
 		} `json:"items" binding:"required,min=1,dive"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -81,7 +82,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 
 	items := make([]repository.OrderItemInput, len(req.Items))
 	for i, it := range req.Items {
-		items[i] = repository.OrderItemInput{MenuID: it.MenuID, Qty: it.Qty}
+		items[i] = repository.OrderItemInput{MenuID: it.MenuID, Qty: it.Qty, Note: strings.TrimSpace(it.Note)}
 	}
 
 	customer, err := h.customerRepo.FindOrCreateByPhone(customerName, phone)

@@ -37,7 +37,7 @@ function createOrder(
   token: string,
   customerName: string,
   phone: string,
-  items: { menu_id: number; qty: number }[]
+  items: { menu_id: number; qty: number; note: string }[]
 ) {
   return api
     .post<{ data: CreateOrderResponse }>('/public/orders', {
@@ -122,6 +122,7 @@ export default function MenuPublicPage() {
   const [cartOpen, setCartOpen] = useState(false)
   const [activeCat, setActiveCat] = useState('Semua')
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [notesOpen, setNotesOpen] = useState<Set<number>>(new Set())
 
   const cart = useCartStore()
   const dragControls = useDragControls()
@@ -150,7 +151,7 @@ export default function MenuPublicPage() {
         token!,
         cart.customerName,
         cart.phone,
-        cart.items.map((i) => ({ menu_id: i.menuId, qty: i.qty }))
+        cart.items.map((i) => ({ menu_id: i.menuId, qty: i.qty, note: i.note.trim() }))
       ),
     onSuccess: (order) => {
       cart.clear()
@@ -390,40 +391,64 @@ export default function MenuPublicPage() {
                   <p className="text-sm text-gray-400">Keranjang masih kosong</p>
                 </div>
               ) : (
-                cart.items.map((item) => (
-                  <div key={item.menuId} className="flex items-center gap-3 py-3 border-b border-gray-50">
-                    <div style={{ width: 48, height: 48, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: '#f4f4f5' }}>
-                      {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <UtensilsCrossed size={18} className="text-gray-300" />
+                cart.items.map((item) => {
+                  const noteOpen = notesOpen.has(item.menuId) || item.note.trim().length > 0
+                  return (
+                    <div key={item.menuId} className="py-3 border-b border-gray-50">
+                      <div className="flex items-center gap-3">
+                        <div style={{ width: 48, height: 48, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: '#f4f4f5' }}>
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <UtensilsCrossed size={18} className="text-gray-300" />
+                            </div>
+                          )}
                         </div>
-                      )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-900 truncate">{item.name}</p>
+                          <p className="text-xs text-gray-400">{formatPrice(item.price)}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => cart.updateQty(item.menuId, item.qty - 1)}
+                            className="w-6 h-6 rounded-md flex items-center justify-center"
+                            style={{ background: '#fdece5', color: ACCENT }}
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span className="text-sm font-black text-gray-900 w-4 text-center">{item.qty}</span>
+                          <button
+                            onClick={() => cart.updateQty(item.menuId, item.qty + 1)}
+                            className="w-6 h-6 rounded-md flex items-center justify-center text-white"
+                            style={{ background: ACCENT }}
+                          >
+                            <Plus size={11} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="pl-[60px] mt-1.5">
+                        {noteOpen ? (
+                          <textarea
+                            value={item.note}
+                            onChange={(e) => cart.updateNote(item.menuId, e.target.value)}
+                            placeholder="Contoh: tanpa gula, pedas sedikit…"
+                            rows={2}
+                            maxLength={500}
+                            className="w-full px-2.5 py-1.5 rounded-lg text-xs text-gray-900 outline-none border border-gray-200 resize-none"
+                          />
+                        ) : (
+                          <button
+                            onClick={() => setNotesOpen((prev) => new Set(prev).add(item.menuId))}
+                            className="text-xs italic text-gray-400"
+                          >
+                            + Tambah catatan
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">{item.name}</p>
-                      <p className="text-xs text-gray-400">{formatPrice(item.price)}</p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => cart.updateQty(item.menuId, item.qty - 1)}
-                        className="w-6 h-6 rounded-md flex items-center justify-center"
-                        style={{ background: '#fdece5', color: ACCENT }}
-                      >
-                        <Minus size={11} />
-                      </button>
-                      <span className="text-sm font-black text-gray-900 w-4 text-center">{item.qty}</span>
-                      <button
-                        onClick={() => cart.updateQty(item.menuId, item.qty + 1)}
-                        className="w-6 h-6 rounded-md flex items-center justify-center text-white"
-                        style={{ background: ACCENT }}
-                      >
-                        <Plus size={11} />
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
 

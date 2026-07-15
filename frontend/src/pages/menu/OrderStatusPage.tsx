@@ -12,6 +12,7 @@ interface OrderItem {
   menu_name: string
   qty: number
   price: number
+  note: string
 }
 
 interface OrderData {
@@ -152,6 +153,9 @@ export default function OrderStatusPage() {
               <div>
                 <p className="text-sm font-bold text-white">{item.menu_name}</p>
                 <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{item.qty} x {formatPrice(item.price)}</p>
+                {item.note && (
+                  <p className="text-xs italic mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>catatan: {item.note}</p>
+                )}
               </div>
               <p className="text-sm font-black" style={{ color: '#00c8ff' }}>{formatPrice(item.qty * item.price)}</p>
             </div>
