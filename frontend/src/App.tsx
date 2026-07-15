@@ -13,8 +13,10 @@ import OrderPage from './pages/dashboard/order/OrderPage'
 import UserPage from './pages/dashboard/user/UserPage'
 import RolePage from './pages/dashboard/role/RolePage'
 import ReportPage from './pages/dashboard/report/ReportPage'
+import CustomerPage from './pages/dashboard/customer/CustomerPage'
 import MenuPublicPage from './pages/menu/MenuPublicPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
+import OrderHistoryPage from './pages/menu/OrderHistoryPage'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 
 function PageTransition({ children }: { children: React.ReactNode }) {
@@ -40,6 +42,7 @@ function AnimatedRoutes() {
         <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
         <Route path="/menu/:token" element={<PageTransition><MenuPublicPage /></PageTransition>} />
         <Route path="/order/:id/status" element={<PageTransition><OrderStatusPage /></PageTransition>} />
+        <Route path="/order/history" element={<PageTransition><OrderHistoryPage /></PageTransition>} />
 
         {/* Protected dashboard */}
         <Route element={<ProtectedRoute />}>
@@ -52,6 +55,7 @@ function AnimatedRoutes() {
             <Route path="users" element={<PageTransition><UserPage /></PageTransition>} />
             <Route path="roles" element={<PageTransition><RolePage /></PageTransition>} />
             <Route path="reports" element={<PageTransition><ReportPage /></PageTransition>} />
+            <Route path="customers" element={<PageTransition><CustomerPage /></PageTransition>} />
           </Route>
         </Route>
 

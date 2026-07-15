@@ -15,6 +15,7 @@ var allPermissions = []string{
 	"user:create", "user:read", "user:update", "user:delete",
 	"role:manage",
 	"report:read",
+	"customer:read",
 }
 
 var adminPermissions = []string{
@@ -22,6 +23,7 @@ var adminPermissions = []string{
 	"category:read",
 	"table:read",
 	"order:create", "order:read", "order:update",
+	"customer:read",
 }
 
 func Run(db *sql.DB) {
