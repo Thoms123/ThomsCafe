@@ -61,12 +61,65 @@ function groupByCategory(menus: MenuItemPublic[]) {
   }, {})
 }
 
+// Shown right after the QR scan, before any menu content — the customer identifies
+// themselves once per session, instead of being asked again at checkout.
+function IdentityGate({ tableNumber, onSubmit }: { tableNumber?: string; onSubmit: (name: string, phone: string) => void }) {
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const isPhoneValid = PHONE_REGEX.test(phone.trim())
+  const canSubmit = name.trim().length > 0 && isPhoneValid
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (canSubmit) onSubmit(name.trim(), phone.trim())
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#fff' }}>
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <p className="font-black text-xl text-gray-900">ThomsCafe</p>
+          {tableNumber && <p className="text-xs text-gray-400 mt-1">Meja {tableNumber}</p>}
+        </div>
+        <h1 className="text-lg font-black text-gray-900 mb-1">Halo! 👋</h1>
+        <p className="text-sm text-gray-500 mb-6">Isi data dirimu dulu sebelum lihat menu.</p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nama pemesan"
+            className="w-full px-3 py-3 rounded-xl text-sm text-gray-900 outline-none border border-gray-200"
+            autoFocus
+          />
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="No. HP (mis. 08123456789)"
+            className="w-full px-3 py-3 rounded-xl text-sm text-gray-900 outline-none border border-gray-200"
+          />
+          {phone.trim().length > 0 && !isPhoneValid && (
+            <p className="text-xs text-red-500 -mt-1">Nomor HP tidak valid</p>
+          )}
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="w-full py-3.5 rounded-2xl text-sm font-black text-white mt-2"
+            style={{ background: ACCENT, opacity: canSubmit ? 1 : 0.5 }}
+          >
+            Lihat Menu
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function MenuPublicPage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
   const [cartOpen, setCartOpen] = useState(false)
-  const [customerName, setCustomerName] = useState('')
-  const [phone, setPhone] = useState('')
   const [activeCat, setActiveCat] = useState('Semua')
   const [showScrollTop, setShowScrollTop] = useState(false)
 
@@ -95,8 +148,8 @@ export default function MenuPublicPage() {
     mutationFn: () =>
       createOrder(
         token!,
-        customerName.trim(),
-        phone.trim(),
+        cart.customerName,
+        cart.phone,
         cart.items.map((i) => ({ menu_id: i.menuId, qty: i.qty }))
       ),
     onSuccess: (order) => {
@@ -105,8 +158,13 @@ export default function MenuPublicPage() {
     },
   })
 
-  const isPhoneValid = PHONE_REGEX.test(phone.trim())
-  const canSubmitOrder = customerName.trim().length > 0 && isPhoneValid && !orderMutation.isPending
+  const hasIdentity = cart.customerName.trim().length > 0 && PHONE_REGEX.test(cart.phone.trim())
+
+  // Gate the entire page behind name+phone — collected once, right after scanning
+  // the QR, instead of at checkout.
+  if (!hasIdentity) {
+    return <IdentityGate tableNumber={data?.table.table_number} onSubmit={cart.setCustomer} />
+  }
 
   if (isLoading) {
     return (
@@ -371,32 +429,23 @@ export default function MenuPublicPage() {
 
             {cart.items.length > 0 && (
               <div className="px-5 pt-4 pb-safe border-t border-gray-100">
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Nama pemesan"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm mb-2 text-gray-900 outline-none border border-gray-200"
-                />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="No. HP (mis. 08123456789)"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm mb-1 text-gray-900 outline-none border border-gray-200"
-                />
-                {phone.trim().length > 0 && !isPhoneValid && (
-                  <p className="text-xs mb-2 text-red-500">Nomor HP tidak valid</p>
-                )}
-                <div className="flex items-center justify-between mt-3 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-gray-500">
+                    Pemesan: <span className="font-bold text-gray-700">{cart.customerName}</span> · {cart.phone}
+                  </p>
+                  <button onClick={() => cart.clearCustomer()} className="text-xs font-bold flex-shrink-0" style={{ color: ACCENT }}>
+                    Ubah
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-bold text-gray-500">Total ({cartCount} item)</span>
                   <span className="text-lg font-black" style={{ color: ACCENT }}>{formatPrice(cartTotal)}</span>
                 </div>
                 <button
                   onClick={() => orderMutation.mutate()}
-                  disabled={!canSubmitOrder}
+                  disabled={orderMutation.isPending}
                   className="w-full py-3.5 rounded-2xl text-sm font-black text-white"
-                  style={{ background: ACCENT, opacity: canSubmitOrder ? 1 : 0.5 }}
+                  style={{ background: ACCENT, opacity: orderMutation.isPending ? 0.6 : 1 }}
                 >
                   {orderMutation.isPending ? 'Mengirim pesanan...' : 'Pesan Sekarang'}
                 </button>
