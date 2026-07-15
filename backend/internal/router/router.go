@@ -64,6 +64,7 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	public.POST("/auth/login", authHandler.Login)
 	public.GET("/public/menu/:token", tableHandler.PublicMenuByToken)
 	public.POST("/public/orders", orderLimiter.Middleware(), orderHandler.Create)
+	public.GET("/public/orders", orderLimiter.Middleware(), orderHandler.GetByPhone)
 	public.GET("/public/orders/:id", orderHandler.GetStatus)
 
 	// Protected routes

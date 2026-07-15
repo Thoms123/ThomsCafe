@@ -143,6 +143,29 @@ func (r *OrderRepository) FindAll(f OrderFilter) ([]Order, error) {
 	if err != nil {
 		return nil, err
 	}
+	return r.loadOrders(rows)
+}
+
+// FindByPhone returns every order placed by the customer with this phone
+// number (already normalized by the caller), most recent first.
+func (r *OrderRepository) FindByPhone(phone string) ([]Order, error) {
+	rows, err := r.db.Query(
+		`SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.created_at
+		 FROM orders o
+		 JOIN tables t ON t.id = o.table_id
+		 JOIN customers c ON c.id = o.customer_id
+		 WHERE c.phone = $1
+		 ORDER BY o.created_at DESC`, phone,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return r.loadOrders(rows)
+}
+
+// loadOrders scans order rows (closing them) and batch-loads their items in
+// a second query, shared by every method that returns a list of orders.
+func (r *OrderRepository) loadOrders(rows *sql.Rows) ([]Order, error) {
 	defer rows.Close()
 
 	var orders []Order
