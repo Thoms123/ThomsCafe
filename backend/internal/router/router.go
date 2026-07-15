@@ -32,6 +32,7 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	tableRepo := repository.NewTableRepository(db, frontendURL)
 	orderRepo := repository.NewOrderRepository(db)
 	customerRepo := repository.NewCustomerRepository(db)
+	settingsRepo := repository.NewSettingsRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	roleRepo := repository.NewRoleRepository(db)
 	reportRepo := repository.NewReportRepository(db)
@@ -45,8 +46,9 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	categoryHandler := handler.NewCategoryHandler(categoryRepo)
 	menuHandler := handler.NewMenuHandler(menuRepo, cld)
 	tableHandler := handler.NewTableHandler(tableRepo, menuRepo)
-	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo, customerRepo, hub)
+	orderHandler := handler.NewOrderHandler(orderRepo, tableRepo, customerRepo, settingsRepo, hub)
 	customerHandler := handler.NewCustomerHandler(customerRepo)
+	settingsHandler := handler.NewSettingsHandler(settingsRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	roleHandler := handler.NewRoleHandler(roleRepo)
 	reportHandler := handler.NewReportHandler(reportRepo)
@@ -67,6 +69,7 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	public.POST("/public/orders", orderLimiter.Middleware(), orderHandler.Create)
 	public.GET("/public/orders", orderLimiter.Middleware(), orderHandler.GetByPhone)
 	public.GET("/public/orders/:id", orderHandler.GetStatus)
+	public.GET("/public/store-hours", settingsHandler.GetPublicHours)
 
 	// Protected routes
 	protected := api.Group("")
@@ -112,6 +115,9 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 
 	// Customers
 	protected.GET("/customers", middleware.RequirePermission("customer:read"), customerHandler.List)
+
+	// Settings
+	protected.PUT("/settings/store-hours", middleware.RequirePermission("setting:update"), settingsHandler.UpdateHours)
 
 	// Reports
 	protected.GET("/reports/sales", middleware.RequirePermission("report:read"), reportHandler.Sales)

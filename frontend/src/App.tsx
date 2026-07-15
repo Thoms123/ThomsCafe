@@ -14,6 +14,7 @@ import UserPage from './pages/dashboard/user/UserPage'
 import RolePage from './pages/dashboard/role/RolePage'
 import ReportPage from './pages/dashboard/report/ReportPage'
 import CustomerPage from './pages/dashboard/customer/CustomerPage'
+import SettingsPage from './pages/dashboard/settings/SettingsPage'
 import MenuPublicPage from './pages/menu/MenuPublicPage'
 import OrderStatusPage from './pages/menu/OrderStatusPage'
 import OrderHistoryPage from './pages/menu/OrderHistoryPage'
@@ -56,6 +57,7 @@ function AnimatedRoutes() {
             <Route path="roles" element={<PageTransition><RolePage /></PageTransition>} />
             <Route path="reports" element={<PageTransition><ReportPage /></PageTransition>} />
             <Route path="customers" element={<PageTransition><CustomerPage /></PageTransition>} />
+            <Route path="settings" element={<PageTransition><SettingsPage /></PageTransition>} />
           </Route>
         </Route>
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -32,11 +33,12 @@ type OrderHandler struct {
 	orderRepo    *repository.OrderRepository
 	tableRepo    *repository.TableRepository
 	customerRepo *repository.CustomerRepository
+	settingsRepo *repository.SettingsRepository
 	hub          *ws.Hub
 }
 
-func NewOrderHandler(orderRepo *repository.OrderRepository, tableRepo *repository.TableRepository, customerRepo *repository.CustomerRepository, hub *ws.Hub) *OrderHandler {
-	return &OrderHandler{orderRepo: orderRepo, tableRepo: tableRepo, customerRepo: customerRepo, hub: hub}
+func NewOrderHandler(orderRepo *repository.OrderRepository, tableRepo *repository.TableRepository, customerRepo *repository.CustomerRepository, settingsRepo *repository.SettingsRepository, hub *ws.Hub) *OrderHandler {
+	return &OrderHandler{orderRepo: orderRepo, tableRepo: tableRepo, customerRepo: customerRepo, settingsRepo: settingsRepo, hub: hub}
 }
 
 // Create — public endpoint, no auth required
@@ -55,6 +57,16 @@ func (h *OrderHandler) Create(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, err)
+		return
+	}
+
+	settings, err := h.settingsRepo.GetStoreHours()
+	if err != nil {
+		response.InternalError(c, "Failed to fetch store hours")
+		return
+	}
+	if !settings.IsOpenNow() {
+		response.Forbidden(c, fmt.Sprintf("Toko sedang tutup. Buka jam %s - %s", settings.OpenTime, settings.CloseTime))
 		return
 	}
 
