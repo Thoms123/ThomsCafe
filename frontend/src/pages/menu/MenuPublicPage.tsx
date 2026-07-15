@@ -27,10 +27,20 @@ interface CreateOrderResponse {
   id: number
 }
 
+interface StoreHours {
+  open_time: string
+  close_time: string
+  is_open: boolean
+}
+
 const ACCENT = '#e8491d'
 
 function fetchPublicMenu(token: string) {
   return api.get<{ data: PublicData }>(`/public/menu/${token}`).then((r) => r.data.data)
+}
+
+function fetchStoreHours() {
+  return api.get<{ data: StoreHours }>('/public/store-hours').then((r) => r.data.data)
 }
 
 function createOrder(
@@ -116,6 +126,22 @@ function IdentityGate({ tableNumber, onSubmit }: { tableNumber?: string; onSubmi
   )
 }
 
+// Shown instead of the identity gate/menu whenever the store is outside its
+// operating hours — matches the same is_open the backend enforces on order creation.
+function ClosedScreen({ hours }: { hours: StoreHours }) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: '#fff' }}>
+      <p className="font-black text-xl text-gray-900 mb-1">ThomsCafe</p>
+      <UtensilsCrossed size={40} className="text-gray-200 my-4" />
+      <h1 className="text-lg font-black text-gray-900 mb-1">Sedang Tutup</h1>
+      <p className="text-sm text-gray-500">
+        Kami buka setiap hari jam <span className="font-bold text-gray-700">{hours.open_time}</span> - <span className="font-bold text-gray-700">{hours.close_time}</span> WIB.
+      </p>
+      <p className="text-xs text-gray-400 mt-1">Silakan kembali lagi nanti.</p>
+    </div>
+  )
+}
+
 export default function MenuPublicPage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
@@ -133,6 +159,13 @@ export default function MenuPublicPage() {
     queryKey: ['public-menu', token],
     queryFn: () => fetchPublicMenu(token!),
     enabled: !!token,
+    retry: false,
+  })
+
+  const { data: hours } = useQuery({
+    queryKey: ['store-hours'],
+    queryFn: fetchStoreHours,
+    refetchInterval: 60000,
     retry: false,
   })
 
@@ -162,6 +195,12 @@ export default function MenuPublicPage() {
   })
 
   const hasIdentity = cart.customerName.trim().length > 0 && PHONE_REGEX.test(cart.phone.trim())
+
+  // Same is_open the backend enforces on order creation — checked first, before
+  // even asking for identity, since there's no point ordering while closed.
+  if (hours && !hours.is_open) {
+    return <ClosedScreen hours={hours} />
+  }
 
   // Gate the entire page behind name+phone — collected once, right after scanning
   // the QR, instead of at checkout.
@@ -234,7 +273,10 @@ export default function MenuPublicPage() {
           <>
             <div className="flex-1 min-w-0">
               <p className="font-black text-base leading-tight text-gray-900">ThomsCafe</p>
-              <p className="text-xs text-gray-400 mt-0.5">Meja {data.table.table_number} · Silakan pilih menu</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Meja {data.table.table_number} · Silakan pilih menu
+                {hours && <> · Buka {hours.open_time}-{hours.close_time}</>}
+              </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <Link to="/order/history" className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">

@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   BarChart3,
   Contact,
+  Settings,
   LogOut,
   Sun,
   Moon,
@@ -42,6 +43,7 @@ const navItems = [
   { label: 'Role & Izin', href: '/dashboard/roles',      permission: 'role:manage',    icon: ShieldCheck },
   { label: 'Pelanggan',  href: '/dashboard/customers',   permission: 'customer:read',  icon: Contact },
   { label: 'Laporan',    href: '/dashboard/reports',     permission: 'report:read',    icon: BarChart3 },
+  { label: 'Pengaturan', href: '/dashboard/settings',    permission: 'setting:update', icon: Settings },
 ]
 
 export default function Sidebar() {

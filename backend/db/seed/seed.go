@@ -16,6 +16,7 @@ var allPermissions = []string{
 	"role:manage",
 	"report:read",
 	"customer:read",
+	"setting:update",
 }
 
 var adminPermissions = []string{
