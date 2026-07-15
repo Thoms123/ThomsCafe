@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { UtensilsCrossed, Search, ChevronUp, ShoppingBasket, Minus, Plus, X } from 'lucide-react'
+import { UtensilsCrossed, Search, History, ChevronUp, ShoppingBasket, Minus, Plus, X } from 'lucide-react'
 import { motion, useDragControls } from 'framer-motion'
 import api from '../../lib/axios'
+import { PHONE_REGEX } from '../../lib/phone'
 import { useCartStore } from '../../store/cartStore'
 import { Skeleton } from '../../components/ui/Skeleton'
 
@@ -47,9 +48,6 @@ function createOrder(
     })
     .then((r) => r.data.data)
 }
-
-// Matches the backend's phoneRegex: Indonesian mobile numbers (08xxx / 628xxx / +628xxx).
-const PHONE_REGEX = /^(\+62|62|0)8[0-9]{7,11}$/
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n)
@@ -150,8 +148,13 @@ export default function MenuPublicPage() {
           <p className="font-black text-base leading-tight text-gray-900">ThomsCafe</p>
           <p className="text-xs text-gray-400 mt-0.5">Meja {data.table.table_number} · Silakan pilih menu</p>
         </div>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
-          <Search size={16} />
+        <div className="flex items-center gap-2">
+          <Link to="/order/history" className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
+            <History size={16} />
+          </Link>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
+            <Search size={16} />
+          </div>
         </div>
       </div>
 

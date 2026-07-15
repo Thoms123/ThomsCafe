@@ -108,6 +108,25 @@ func (h *OrderHandler) Create(c *gin.Context) {
 	response.Created(c, "Order created", order)
 }
 
+// GetByPhone — public endpoint, no auth required
+// Returns a customer's past orders, most recent first, for the order-history
+// lookup on the customer page.
+func (h *OrderHandler) GetByPhone(c *gin.Context) {
+	phone := strings.TrimSpace(c.Query("phone"))
+	if !phoneRegex.MatchString(phone) {
+		response.BadRequest(c, "Nomor HP tidak valid")
+		return
+	}
+	phone = normalizePhone(phone)
+
+	orders, err := h.orderRepo.FindByPhone(phone)
+	if err != nil {
+		response.InternalError(c, "Failed to fetch orders")
+		return
+	}
+	response.OK(c, "OK", orders)
+}
+
 // GetStatus — public endpoint, no auth required
 func (h *OrderHandler) GetStatus(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
