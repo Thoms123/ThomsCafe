@@ -16,6 +16,7 @@ interface MenuItemPublic {
   category: string
   category_id: number
   is_available: boolean
+  is_recommended: boolean
 }
 
 interface PublicData {
@@ -244,6 +245,10 @@ export default function MenuPublicPage() {
 
   const cartCount = cart.items.reduce((sum, i) => sum + i.qty, 0)
   const cartTotal = cart.items.reduce((sum, i) => sum + i.qty * i.price, 0)
+
+  const recommendedMenus = data.menus.filter(
+    (m) => m.is_recommended && m.is_available && !cart.items.some((i) => i.menuId === m.id)
+  )
 
   return (
     <div className="min-h-screen" style={{ background: '#fff' }}>
@@ -529,6 +534,37 @@ export default function MenuPublicPage() {
                 })
               )}
             </div>
+
+            {cart.items.length > 0 && recommendedMenus.length > 0 && (
+              <div className="px-5 pt-3 border-t border-gray-100">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Rekomendasi untuk kamu</p>
+                <div className="flex gap-2.5 overflow-x-auto pb-1">
+                  {recommendedMenus.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() =>
+                        cart.addItem({ menuId: item.id, name: item.name, price: item.price, image: item.image })
+                      }
+                      className="flex-shrink-0 w-24 text-left rounded-xl border border-gray-100 overflow-hidden"
+                    >
+                      <div className="w-full aspect-square bg-gray-100">
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <UtensilsCrossed size={16} className="text-gray-300" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-1.5">
+                        <p className="text-[11px] font-bold text-gray-900 leading-snug truncate">{item.name}</p>
+                        <p className="text-[11px] font-black mt-0.5" style={{ color: ACCENT }}>{formatPrice(item.price)}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {cart.items.length > 0 && (
               <div className="px-5 pt-4 pb-safe border-t border-gray-100">

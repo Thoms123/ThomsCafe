@@ -67,6 +67,7 @@ func (h *MenuHandler) Create(c *gin.Context) {
 		response.BadRequest(c, "Invalid category_id")
 		return
 	}
+	isRecommended := c.PostForm("is_recommended") == "true"
 
 	imageURL := ""
 	file, fh, err := c.Request.FormFile("image")
@@ -79,7 +80,7 @@ func (h *MenuHandler) Create(c *gin.Context) {
 		}
 	}
 
-	menu, err := h.repo.Create(name, price, imageURL, catID)
+	menu, err := h.repo.Create(name, price, imageURL, catID, isRecommended)
 	if err != nil {
 		response.InternalError(c, "Failed to create menu")
 		return
@@ -119,6 +120,7 @@ func (h *MenuHandler) Update(c *gin.Context) {
 			catID = cid
 		}
 	}
+	isRecommended := c.PostForm("is_recommended") == "true"
 
 	imageURL := existing.Image
 	file, fh, err := c.Request.FormFile("image")
@@ -133,7 +135,7 @@ func (h *MenuHandler) Update(c *gin.Context) {
 		imageURL = newURL
 	}
 
-	menu, err := h.repo.Update(id, name, price, imageURL, catID)
+	menu, err := h.repo.Update(id, name, price, imageURL, catID, isRecommended)
 	if err != nil {
 		response.InternalError(c, "Failed to update menu")
 		return
