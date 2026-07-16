@@ -49,6 +49,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		Token        string `json:"token" binding:"required"`
 		CustomerName string `json:"customer_name" binding:"required"`
 		Phone        string `json:"phone" binding:"required"`
+		OrderType    string `json:"order_type"`
 		Items        []struct {
 			MenuID int    `json:"menu_id" binding:"required"`
 			Qty    int    `json:"qty" binding:"required,min=1"`
@@ -57,6 +58,15 @@ func (h *OrderHandler) Create(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, err)
+		return
+	}
+
+	orderType := strings.TrimSpace(req.OrderType)
+	if orderType == "" {
+		orderType = "dine_in"
+	}
+	if !repository.ValidOrderTypes[orderType] {
+		response.BadRequest(c, "Invalid order_type")
 		return
 	}
 
@@ -103,7 +113,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		return
 	}
 
-	order, err := h.orderRepo.Create(table.ID, customer.ID, customerName, items)
+	order, err := h.orderRepo.Create(table.ID, customer.ID, customerName, orderType, items)
 	if err != nil {
 		if repository.IsMenuNotFound(err) {
 			response.BadRequest(c, "One or more menu items were not found")

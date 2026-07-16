@@ -23,6 +23,7 @@ interface Order {
   status: string
   total: number
   customer_name: string | null
+  order_type: string
   created_at: string
   items: OrderItem[]
 }
@@ -51,6 +52,10 @@ const NEXT_STATUS: Record<string, string | null> = {
 
 function statusLabel(status: string) {
   return STATUSES.find((s) => s.key === status)?.label ?? status
+}
+
+function orderTypeLabel(type: string) {
+  return type === 'take_away' ? 'Bawa Pulang' : 'Makan di Tempat'
 }
 
 function todayStr() {
@@ -186,9 +191,17 @@ export default function OrderPage() {
                       <div key={order.id} className="rounded-2xl p-4 flex flex-col gap-3" style={cardStyle}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-black" style={{ color: 'var(--accent)' }}>
-                              Meja {order.table_number}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-black" style={{ color: 'var(--accent)' }}>
+                                Meja {order.table_number}
+                              </p>
+                              <span
+                                className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                                style={{ background: 'var(--accent-dim)', color: 'var(--accent-text)', border: '1px solid var(--accent-border)' }}
+                              >
+                                {orderTypeLabel(order.order_type)}
+                              </span>
+                            </div>
                             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                               {order.customer_name || 'Tanpa nama'}
                             </p>

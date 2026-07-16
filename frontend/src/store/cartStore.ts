@@ -10,14 +10,18 @@ export interface CartItem {
   note: string
 }
 
+export type OrderType = 'dine_in' | 'take_away'
+
 interface CartStore {
   token: string | null
   items: CartItem[]
   customerName: string
   phone: string
+  orderType: OrderType
   setTable: (token: string) => void
   setCustomer: (name: string, phone: string) => void
   clearCustomer: () => void
+  setOrderType: (type: OrderType) => void
   addItem: (item: Omit<CartItem, 'qty' | 'note'>, qty?: number) => void
   updateQty: (menuId: number, qty: number) => void
   updateNote: (menuId: number, note: string) => void
@@ -32,6 +36,7 @@ export const useCartStore = create<CartStore>()(
       items: [],
       customerName: '',
       phone: '',
+      orderType: 'dine_in',
 
       // Switching tables clears the cart — items only make sense for the table they were added on.
       // Identity (name/phone) is deliberately left untouched — it's who's ordering, not what table.
@@ -43,6 +48,7 @@ export const useCartStore = create<CartStore>()(
 
       setCustomer: (name, phone) => set({ customerName: name, phone }),
       clearCustomer: () => set({ customerName: '', phone: '' }),
+      setOrderType: (type) => set({ orderType: type }),
 
       addItem: (item, qty = 1) => {
         const items = get().items
@@ -72,7 +78,7 @@ export const useCartStore = create<CartStore>()(
         set({ items: get().items.filter((i) => i.menuId !== menuId) })
       },
 
-      clear: () => set({ items: [] }),
+      clear: () => set({ items: [], orderType: 'dine_in' }),
     }),
     { name: 'cart-storage' }
   )
