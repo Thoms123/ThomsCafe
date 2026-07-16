@@ -5,7 +5,7 @@ import { UtensilsCrossed, Search, History, ChevronUp, ShoppingBasket, Minus, Plu
 import { motion, useDragControls } from 'framer-motion'
 import api from '../../lib/axios'
 import { PHONE_REGEX } from '../../lib/phone'
-import { useCartStore } from '../../store/cartStore'
+import { useCartStore, type OrderType } from '../../store/cartStore'
 import { Skeleton } from '../../components/ui/Skeleton'
 
 interface MenuItemPublic {
@@ -48,6 +48,7 @@ function createOrder(
   token: string,
   customerName: string,
   phone: string,
+  orderType: OrderType,
   items: { menu_id: number; qty: number; note: string }[]
 ) {
   return api
@@ -55,6 +56,7 @@ function createOrder(
       token,
       customer_name: customerName,
       phone,
+      order_type: orderType,
       items,
     })
     .then((r) => r.data.data)
@@ -187,6 +189,7 @@ export default function MenuPublicPage() {
         token!,
         cart.customerName,
         cart.phone,
+        cart.orderType,
         cart.items.map((i) => ({ menu_id: i.menuId, qty: i.qty, note: i.note.trim() }))
       ),
     onSuccess: (order) => {
@@ -568,6 +571,22 @@ export default function MenuPublicPage() {
 
             {cart.items.length > 0 && (
               <div className="px-5 pt-4 pb-safe border-t border-gray-100">
+                <div className="flex rounded-xl overflow-hidden border border-gray-200 mb-3">
+                  {(['dine_in', 'take_away'] as const).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => cart.setOrderType(type)}
+                      className="flex-1 py-2 text-xs font-bold"
+                      style={
+                        cart.orderType === type
+                          ? { background: ACCENT, color: '#fff' }
+                          : { background: '#fff', color: '#9ca3af' }
+                      }
+                    >
+                      {type === 'dine_in' ? 'Makan di Tempat' : 'Bawa Pulang'}
+                    </button>
+                  ))}
+                </div>
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs text-gray-500">
                     Pemesan: <span className="font-bold text-gray-700">{cart.customerName}</span> · {cart.phone}
