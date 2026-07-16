@@ -129,22 +129,6 @@ function IdentityGate({ tableNumber, onSubmit }: { tableNumber?: string; onSubmi
   )
 }
 
-// Shown instead of the identity gate/menu whenever the store is outside its
-// operating hours — matches the same is_open the backend enforces on order creation.
-function ClosedScreen({ hours }: { hours: StoreHours }) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center" style={{ background: '#fff' }}>
-      <p className="font-black text-xl text-gray-900 mb-1">ThomsCafe</p>
-      <UtensilsCrossed size={40} className="text-gray-200 my-4" />
-      <h1 className="text-lg font-black text-gray-900 mb-1">Sedang Tutup</h1>
-      <p className="text-sm text-gray-500">
-        Kami buka setiap hari jam <span className="font-bold text-gray-700">{hours.open_time}</span> - <span className="font-bold text-gray-700">{hours.close_time}</span> WIB.
-      </p>
-      <p className="text-xs text-gray-400 mt-1">Silakan kembali lagi nanti.</p>
-    </div>
-  )
-}
-
 export default function MenuPublicPage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
@@ -199,16 +183,15 @@ export default function MenuPublicPage() {
   })
 
   const hasIdentity = cart.customerName.trim().length > 0 && PHONE_REGEX.test(cart.phone.trim())
-
-  // Same is_open the backend enforces on order creation — checked first, before
-  // even asking for identity, since there's no point ordering while closed.
-  if (hours && !hours.is_open) {
-    return <ClosedScreen hours={hours} />
-  }
+  // Same is_open the backend enforces on order creation. Defaults to true while
+  // hours are still loading, so the menu isn't blocked by a slow/failed fetch.
+  const isOpen = hours ? hours.is_open : true
 
   // Gate the entire page behind name+phone — collected once, right after scanning
-  // the QR, instead of at checkout.
-  if (!hasIdentity) {
+  // the QR, instead of at checkout. Skipped while closed: browsing is always
+  // allowed (see the "Tutup" banner below), there's just no point asking for
+  // identity when they can't order anyway.
+  if (isOpen && !hasIdentity) {
     return <IdentityGate tableNumber={data?.table.table_number} onSubmit={cart.setCustomer} />
   }
 
@@ -301,6 +284,13 @@ export default function MenuPublicPage() {
         )}
       </div>
 
+      {/* Closed banner — not sticky, scrolls away, so it never fights the header/tabs for the sticky offset */}
+      {!isOpen && hours && (
+        <div className="px-4 py-2.5 text-center" style={{ background: '#dc2626' }}>
+          <p className="text-xs font-bold text-white">TUTUP — Buka jam {hours.open_time} WIB</p>
+        </div>
+      )}
+
       {/* Category tabs */}
       <div className="sticky top-[60px] z-10 flex items-stretch bg-white border-b border-gray-100">
         <div
@@ -364,7 +354,11 @@ export default function MenuPublicPage() {
                       <p className="text-[12.5px] font-extrabold uppercase leading-snug mt-2 min-h-[32px] text-gray-900">{item.name}</p>
                       <p className="text-sm font-black text-gray-900 mt-0.5">{formatPrice(item.price)}</p>
                       <div className="mt-2">
-                        {inCart ? (
+                        {!isOpen ? (
+                          <button disabled className="w-full py-2 rounded-full text-xs font-extrabold border-[1.5px] border-gray-200 text-gray-300">
+                            Tutup
+                          </button>
+                        ) : inCart ? (
                           <div className="flex items-center justify-between rounded-full border-[1.5px] px-2 py-1" style={{ borderColor: ACCENT }}>
                             <button
                               onClick={() => cart.updateQty(item.id, inCart.qty - 1)}
@@ -538,7 +532,7 @@ export default function MenuPublicPage() {
               )}
             </div>
 
-            {cart.items.length > 0 && recommendedMenus.length > 0 && (
+            {isOpen && cart.items.length > 0 && recommendedMenus.length > 0 && (
               <div className="px-5 pt-3 border-t border-gray-100">
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Rekomendasi untuk kamu</p>
                 <div className="flex gap-2.5 overflow-x-auto pb-1">
@@ -601,11 +595,11 @@ export default function MenuPublicPage() {
                 </div>
                 <button
                   onClick={() => orderMutation.mutate()}
-                  disabled={orderMutation.isPending}
+                  disabled={orderMutation.isPending || !isOpen}
                   className="w-full py-3.5 rounded-2xl text-sm font-black text-white"
-                  style={{ background: ACCENT, opacity: orderMutation.isPending ? 0.6 : 1 }}
+                  style={{ background: isOpen ? ACCENT : '#9ca3af', opacity: orderMutation.isPending ? 0.6 : 1 }}
                 >
-                  {orderMutation.isPending ? 'Mengirim pesanan...' : 'Pesan Sekarang'}
+                  {!isOpen ? 'Toko Sedang Tutup' : orderMutation.isPending ? 'Mengirim pesanan...' : 'Pesan Sekarang'}
                 </button>
                 {orderMutation.isError && (
                   <p className="text-xs text-center mt-2 text-red-500">Gagal membuat pesanan. Coba lagi.</p>
