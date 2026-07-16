@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2, UtensilsCrossed, X, ImagePlus, ToggleLeft, ToggleRight, ChevronDown } from 'lucide-react'
+import { Plus, Pencil, Trash2, UtensilsCrossed, X, ImagePlus, ToggleLeft, ToggleRight, ChevronDown, Star } from 'lucide-react'
 import type { AxiosError } from 'axios'
 import api from '../../../lib/axios'
 import { useToast } from '../../../hooks/useToast'
@@ -19,6 +19,7 @@ interface Menu {
   category_id: number
   category: string
   is_available: boolean
+  is_recommended: boolean
   created_at: string
 }
 
@@ -73,6 +74,7 @@ interface MenuFormState {
   categoryId: string
   imageFile: File | null
   imagePreview: string
+  isRecommended: boolean
 }
 
 const defaultForm: MenuFormState = {
@@ -81,6 +83,7 @@ const defaultForm: MenuFormState = {
   categoryId: '',
   imageFile: null,
   imagePreview: '',
+  isRecommended: false,
 }
 
 function formatPrice(n: number) {
@@ -131,6 +134,7 @@ export default function MenuPage() {
       categoryId: String(menu.category_id),
       imageFile: null,
       imagePreview: menu.image ?? '',
+      isRecommended: menu.is_recommended,
     })
     setShowModal(true)
   }
@@ -183,6 +187,7 @@ export default function MenuPage() {
     fd.append('name', form.name.trim())
     fd.append('price', form.price)
     fd.append('category_id', form.categoryId)
+    fd.append('is_recommended', String(form.isRecommended))
     if (form.imageFile) fd.append('image', form.imageFile)
     saveMut.mutate(fd)
   }
@@ -302,6 +307,14 @@ export default function MenuPage() {
                 >
                   {menu.is_available ? 'Tersedia' : 'Habis'}
                 </span>
+                {menu.is_recommended && (
+                  <span
+                    className="absolute top-2 left-2 flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(250,204,21,0.18)', color: '#eab308', border: '1px solid rgba(250,204,21,0.35)' }}
+                  >
+                    <Star size={11} fill="currentColor" /> Rekomendasi
+                  </span>
+                )}
               </div>
 
               {/* Info */}
@@ -513,6 +526,23 @@ export default function MenuPage() {
                 {/* hidden input untuk validasi required */}
                 <input type="text" required value={form.categoryId} onChange={() => {}} style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }} />
               </div>
+
+              {/* Recommended toggle */}
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.isRecommended}
+                  onChange={(e) => setForm((f) => ({ ...f, isRecommended: e.target.checked }))}
+                  className="w-4 h-4"
+                  style={{ accentColor: 'var(--accent)' }}
+                />
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                  Rekomendasikan menu ini
+                </span>
+              </label>
+              <p className="text-xs -mt-3" style={{ color: 'var(--text-muted)' }}>
+                Ditampilkan di keranjang customer sebagai rekomendasi tambahan saat checkout
+              </p>
 
               {/* Actions */}
               <div className="flex gap-3 pt-1">
