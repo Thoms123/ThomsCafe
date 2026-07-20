@@ -10,6 +10,7 @@ import (
 type Menu struct {
 	ID            int       `json:"id"`
 	Name          string    `json:"name"`
+	Description   string    `json:"description"`
 	Price         float64   `json:"price"`
 	Image         string    `json:"image"`
 	CategoryID    int       `json:"category_id"`
@@ -34,7 +35,7 @@ func NewMenuRepository(db *sql.DB) *MenuRepository {
 
 func (r *MenuRepository) FindAll(f MenuFilter) ([]Menu, error) {
 	query := `
-		SELECT m.id, m.name, m.price, m.image, m.category_id, c.name, m.is_available, m.is_recommended, m.created_at
+		SELECT m.id, m.name, m.description, m.price, m.image, m.category_id, c.name, m.is_available, m.is_recommended, m.created_at
 		FROM menus m
 		JOIN categories c ON c.id = m.category_id
 		WHERE 1=1
@@ -63,7 +64,7 @@ func (r *MenuRepository) FindAll(f MenuFilter) ([]Menu, error) {
 	var menus []Menu
 	for rows.Next() {
 		var m Menu
-		if err := rows.Scan(&m.ID, &m.Name, &m.Price, &m.Image, &m.CategoryID, &m.Category, &m.IsAvailable, &m.IsRecommended, &m.CreatedAt); err != nil {
+		if err := rows.Scan(&m.ID, &m.Name, &m.Description, &m.Price, &m.Image, &m.CategoryID, &m.Category, &m.IsAvailable, &m.IsRecommended, &m.CreatedAt); err != nil {
 			return nil, err
 		}
 		menus = append(menus, m)
@@ -77,22 +78,22 @@ func (r *MenuRepository) FindAll(f MenuFilter) ([]Menu, error) {
 func (r *MenuRepository) FindByID(id int) (*Menu, error) {
 	var m Menu
 	err := r.db.QueryRow(`
-		SELECT m.id, m.name, m.price, m.image, m.category_id, c.name, m.is_available, m.is_recommended, m.created_at
+		SELECT m.id, m.name, m.description, m.price, m.image, m.category_id, c.name, m.is_available, m.is_recommended, m.created_at
 		FROM menus m
 		JOIN categories c ON c.id = m.category_id
 		WHERE m.id = $1
-	`, id).Scan(&m.ID, &m.Name, &m.Price, &m.Image, &m.CategoryID, &m.Category, &m.IsAvailable, &m.IsRecommended, &m.CreatedAt)
+	`, id).Scan(&m.ID, &m.Name, &m.Description, &m.Price, &m.Image, &m.CategoryID, &m.Category, &m.IsAvailable, &m.IsRecommended, &m.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	return &m, err
 }
 
-func (r *MenuRepository) Create(name string, price float64, image string, categoryID int, isRecommended bool) (*Menu, error) {
+func (r *MenuRepository) Create(name string, description string, price float64, image string, categoryID int, isRecommended bool) (*Menu, error) {
 	var id int
 	err := r.db.QueryRow(
-		`INSERT INTO menus (name, price, image, category_id, is_recommended) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-		name, price, image, categoryID, isRecommended,
+		`INSERT INTO menus (name, description, price, image, category_id, is_recommended) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+		name, description, price, image, categoryID, isRecommended,
 	).Scan(&id)
 	if err != nil {
 		return nil, err
@@ -100,10 +101,10 @@ func (r *MenuRepository) Create(name string, price float64, image string, catego
 	return r.FindByID(id)
 }
 
-func (r *MenuRepository) Update(id int, name string, price float64, image string, categoryID int, isRecommended bool) (*Menu, error) {
+func (r *MenuRepository) Update(id int, name string, description string, price float64, image string, categoryID int, isRecommended bool) (*Menu, error) {
 	_, err := r.db.Exec(
-		`UPDATE menus SET name=$1, price=$2, image=$3, category_id=$4, is_recommended=$5 WHERE id=$6`,
-		name, price, image, categoryID, isRecommended, id,
+		`UPDATE menus SET name=$1, description=$2, price=$3, image=$4, category_id=$5, is_recommended=$6 WHERE id=$7`,
+		name, description, price, image, categoryID, isRecommended, id,
 	)
 	if err != nil {
 		return nil, err
