@@ -50,6 +50,7 @@ func (h *MenuHandler) List(c *gin.Context) {
 
 func (h *MenuHandler) Create(c *gin.Context) {
 	name := strings.TrimSpace(c.PostForm("name"))
+	description := strings.TrimSpace(c.PostForm("description"))
 	priceStr := c.PostForm("price")
 	categoryStr := c.PostForm("category_id")
 
@@ -80,7 +81,7 @@ func (h *MenuHandler) Create(c *gin.Context) {
 		}
 	}
 
-	menu, err := h.repo.Create(name, price, imageURL, catID, isRecommended)
+	menu, err := h.repo.Create(name, description, price, imageURL, catID, isRecommended)
 	if err != nil {
 		response.InternalError(c, "Failed to create menu")
 		return
@@ -102,6 +103,7 @@ func (h *MenuHandler) Update(c *gin.Context) {
 	}
 
 	name := strings.TrimSpace(c.PostForm("name"))
+	description := strings.TrimSpace(c.PostForm("description"))
 	priceStr := c.PostForm("price")
 	categoryStr := c.PostForm("category_id")
 
@@ -135,7 +137,7 @@ func (h *MenuHandler) Update(c *gin.Context) {
 		imageURL = newURL
 	}
 
-	menu, err := h.repo.Update(id, name, price, imageURL, catID, isRecommended)
+	menu, err := h.repo.Update(id, name, description, price, imageURL, catID, isRecommended)
 	if err != nil {
 		response.InternalError(c, "Failed to update menu")
 		return

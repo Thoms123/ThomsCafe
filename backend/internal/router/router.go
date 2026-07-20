@@ -54,8 +54,14 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	reportHandler := handler.NewReportHandler(reportRepo)
 	wsHandler := handler.NewWSHandler(hub, orderRepo)
 
-	// Rate limit order creation per IP to prevent spam (1 req/sec, burst of 5).
-	orderLimiter := middleware.NewIPRateLimiter(rate.Limit(1), 5)
+	// Rate limit order creation per IP to prevent spam. Keyed by IP, so a whole
+	// table sharing one cafe/router NAT shares one bucket — sized generously
+	// (5 req/sec, burst of 30) so a full table ordering around the same time
+	// doesn't get throttled, while still bounding a single abusive client.
+	// Order creation and order-history lookups get separate buckets so browsing
+	// history doesn't eat into the budget for placing an order.
+	orderLimiter := middleware.NewIPRateLimiter(rate.Limit(5), 30)
+	orderHistoryLimiter := middleware.NewIPRateLimiter(rate.Limit(5), 30)
 
 	// WebSocket routes — mounted at root (not under /api/v1) since the
 	// frontend derives its WS base URL by stripping /api/v1 from the API URL.
@@ -67,7 +73,7 @@ func Setup(db *sql.DB, cld *cloudinary.Cloudinary) *gin.Engine {
 	public.POST("/auth/login", authHandler.Login)
 	public.GET("/public/menu/:token", tableHandler.PublicMenuByToken)
 	public.POST("/public/orders", orderLimiter.Middleware(), orderHandler.Create)
-	public.GET("/public/orders", orderLimiter.Middleware(), orderHandler.GetByPhone)
+	public.GET("/public/orders", orderHistoryLimiter.Middleware(), orderHandler.GetByPhone)
 	public.GET("/public/orders/:id", orderHandler.GetStatus)
 	public.GET("/public/store-hours", settingsHandler.GetPublicHours)
 

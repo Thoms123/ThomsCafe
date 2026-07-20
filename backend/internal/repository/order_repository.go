@@ -37,6 +37,7 @@ type OrderItem struct {
 
 type Order struct {
 	ID           int         `json:"id"`
+	OrderNumber  string      `json:"order_number"`
 	TableID      int         `json:"table_id"`
 	TableNumber  string      `json:"table_number"`
 	Status       string      `json:"status"`
@@ -90,10 +91,15 @@ func (r *OrderRepository) Create(tableID, customerID int, customerName, orderTyp
 		total += price * float64(item.Qty)
 	}
 
+	orderNumber, err := nextOrderNumber(tx)
+	if err != nil {
+		return nil, err
+	}
+
 	var orderID int
 	err = tx.QueryRow(
-		`INSERT INTO orders (table_id, status, total, customer_id, customer_name, order_type) VALUES ($1, 'pending', $2, $3, $4, $5) RETURNING id`,
-		tableID, total, customerID, customerName, orderType,
+		`INSERT INTO orders (order_number, table_id, status, total, customer_id, customer_name, order_type) VALUES ($1, $2, 'pending', $3, $4, $5, $6) RETURNING id`,
+		orderNumber, tableID, total, customerID, customerName, orderType,
 	).Scan(&orderID)
 	if err != nil {
 		return nil, err
@@ -116,6 +122,27 @@ func (r *OrderRepository) Create(tableID, customerID int, customerName, orderTyp
 	return r.FindByID(orderID)
 }
 
+// nextOrderNumber builds the human-facing order number: YYYYMMDDHHMM (creation
+// time in WIB) followed by a 3-digit sequence that resets daily. The counter
+// row is upserted+incremented atomically so concurrent order creation never
+// hands out the same number twice.
+func nextOrderNumber(tx *sql.Tx) (string, error) {
+	now := time.Now().In(jakarta)
+
+	var seq int
+	err := tx.QueryRow(
+		`INSERT INTO daily_order_sequences (seq_date, counter) VALUES ($1, 1)
+		 ON CONFLICT (seq_date) DO UPDATE SET counter = daily_order_sequences.counter + 1
+		 RETURNING counter`,
+		now.Format("2006-01-02"),
+	).Scan(&seq)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s%03d", now.Format("200601021504"), seq), nil
+}
+
 type OrderFilter struct {
 	Status  *string
 	Date    *string // YYYY-MM-DD
@@ -124,7 +151,7 @@ type OrderFilter struct {
 
 func (r *OrderRepository) FindAll(f OrderFilter) ([]Order, error) {
 	query := `
-		SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.order_type, o.created_at
+		SELECT o.id, o.order_number, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.order_type, o.created_at
 		FROM orders o
 		JOIN tables t ON t.id = o.table_id
 		WHERE 1=1
@@ -160,7 +187,7 @@ func (r *OrderRepository) FindAll(f OrderFilter) ([]Order, error) {
 // number (already normalized by the caller), most recent first.
 func (r *OrderRepository) FindByPhone(phone string) ([]Order, error) {
 	rows, err := r.db.Query(
-		`SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.order_type, o.created_at
+		`SELECT o.id, o.order_number, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.order_type, o.created_at
 		 FROM orders o
 		 JOIN tables t ON t.id = o.table_id
 		 JOIN customers c ON c.id = o.customer_id
@@ -182,7 +209,7 @@ func (r *OrderRepository) loadOrders(rows *sql.Rows) ([]Order, error) {
 	ids := []int{}
 	for rows.Next() {
 		var o Order
-		if err := rows.Scan(&o.ID, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerID, &o.CustomerName, &o.OrderType, &o.CreatedAt); err != nil {
+		if err := rows.Scan(&o.ID, &o.OrderNumber, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerID, &o.CustomerName, &o.OrderType, &o.CreatedAt); err != nil {
 			return nil, err
 		}
 		o.Items = []OrderItem{}
@@ -266,11 +293,11 @@ func IsInvalidStatus(err error) bool {
 func (r *OrderRepository) FindByID(id int) (*Order, error) {
 	var o Order
 	err := r.db.QueryRow(
-		`SELECT o.id, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.order_type, o.created_at
+		`SELECT o.id, o.order_number, o.table_id, t.table_number, o.status, o.total, o.customer_id, o.customer_name, o.order_type, o.created_at
 		 FROM orders o
 		 JOIN tables t ON t.id = o.table_id
 		 WHERE o.id = $1`, id,
-	).Scan(&o.ID, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerID, &o.CustomerName, &o.OrderType, &o.CreatedAt)
+	).Scan(&o.ID, &o.OrderNumber, &o.TableID, &o.TableNumber, &o.Status, &o.Total, &o.CustomerID, &o.CustomerName, &o.OrderType, &o.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

@@ -7,10 +7,12 @@ import api from '../../lib/axios'
 import { PHONE_REGEX } from '../../lib/phone'
 import { useCartStore, type OrderType } from '../../store/cartStore'
 import { Skeleton } from '../../components/ui/Skeleton'
+import PageFrame from '../../components/shared/PageFrame'
 
 interface MenuItemPublic {
   id: number
   name: string
+  description: string
   price: number
   image: string
   category: string
@@ -88,44 +90,46 @@ function IdentityGate({ tableNumber, onSubmit }: { tableNumber?: string; onSubmi
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: '#fff' }}>
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <p className="font-black text-xl text-gray-900">ThomsCafe</p>
-          {tableNumber && <p className="text-xs text-gray-400 mt-1">Meja {tableNumber}</p>}
+    <PageFrame>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <p className="font-black text-xl text-gray-900">ThomsCafe</p>
+            {tableNumber && <p className="text-xs text-gray-400 mt-1">Meja {tableNumber}</p>}
+          </div>
+          <h1 className="text-lg font-black text-gray-900 mb-1">Halo! 👋</h1>
+          <p className="text-sm text-gray-500 mb-6">Isi data dirimu dulu sebelum lihat menu.</p>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nama pemesan"
+              className="w-full px-3 py-3 rounded-xl text-sm text-gray-900 outline-none border border-gray-200"
+              autoFocus
+            />
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="No. HP (mis. 08123456789)"
+              className="w-full px-3 py-3 rounded-xl text-sm text-gray-900 outline-none border border-gray-200"
+            />
+            {phone.trim().length > 0 && !isPhoneValid && (
+              <p className="text-xs text-red-500 -mt-1">Nomor HP tidak valid</p>
+            )}
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="w-full py-3.5 rounded-2xl text-sm font-black text-white mt-2"
+              style={{ background: ACCENT, opacity: canSubmit ? 1 : 0.5 }}
+            >
+              Lihat Menu
+            </button>
+          </form>
         </div>
-        <h1 className="text-lg font-black text-gray-900 mb-1">Halo! 👋</h1>
-        <p className="text-sm text-gray-500 mb-6">Isi data dirimu dulu sebelum lihat menu.</p>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nama pemesan"
-            className="w-full px-3 py-3 rounded-xl text-sm text-gray-900 outline-none border border-gray-200"
-            autoFocus
-          />
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="No. HP (mis. 08123456789)"
-            className="w-full px-3 py-3 rounded-xl text-sm text-gray-900 outline-none border border-gray-200"
-          />
-          {phone.trim().length > 0 && !isPhoneValid && (
-            <p className="text-xs text-red-500 -mt-1">Nomor HP tidak valid</p>
-          )}
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="w-full py-3.5 rounded-2xl text-sm font-black text-white mt-2"
-            style={{ background: ACCENT, opacity: canSubmit ? 1 : 0.5 }}
-          >
-            Lihat Menu
-          </button>
-        </form>
       </div>
-    </div>
+    </PageFrame>
   )
 }
 
@@ -138,9 +142,11 @@ export default function MenuPublicPage() {
   const [notesOpen, setNotesOpen] = useState<Set<number>>(new Set())
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedItem, setSelectedItem] = useState<MenuItemPublic | null>(null)
 
   const cart = useCartStore()
   const dragControls = useDragControls()
+  const detailDragControls = useDragControls()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['public-menu', token],
@@ -188,35 +194,39 @@ export default function MenuPublicPage() {
   const isOpen = hours ? hours.is_open : true
 
   // Gate the entire page behind name+phone — collected once, right after scanning
-  // the QR, instead of at checkout. Skipped while closed: browsing is always
-  // allowed (see the "Tutup" banner below), there's just no point asking for
-  // identity when they can't order anyway.
-  if (isOpen && !hasIdentity) {
+  // the QR, instead of at checkout. Shown regardless of open/closed status: it's
+  // the very first thing a customer sees, browsing (or the "Tutup" banner below)
+  // only starts after identity is captured.
+  if (!hasIdentity) {
     return <IdentityGate tableNumber={data?.table.table_number} onSubmit={cart.setCustomer} />
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-safe" style={{ background: '#fff' }}>
-        <div className="px-4 py-4">
-          <Skeleton style={{ height: 36, width: 160 }} />
+      <PageFrame>
+        <div className="pt-safe">
+          <div className="px-4 py-4">
+            <Skeleton style={{ height: 36, width: 160 }} />
+          </div>
+          <div className="px-4 pt-6 grid grid-cols-2 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} style={{ height: 180, borderRadius: 16 }} />
+            ))}
+          </div>
         </div>
-        <div className="px-4 pt-6 grid grid-cols-2 gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} style={{ height: 180, borderRadius: 16 }} />
-          ))}
-        </div>
-      </div>
+      </PageFrame>
     )
   }
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6" style={{ background: '#fff' }}>
-        <UtensilsCrossed size={48} style={{ color: ACCENT, opacity: 0.4 }} />
-        <h1 className="text-xl font-black text-gray-900">Meja tidak ditemukan</h1>
-        <p className="text-sm text-center text-gray-500">QR code tidak valid atau sudah tidak aktif.</p>
-      </div>
+      <PageFrame>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6">
+          <UtensilsCrossed size={48} style={{ color: ACCENT, opacity: 0.4 }} />
+          <h1 className="text-xl font-black text-gray-900">Meja tidak ditemukan</h1>
+          <p className="text-sm text-center text-gray-500">QR code tidak valid atau sudah tidak aktif.</p>
+        </div>
+      </PageFrame>
     )
   }
 
@@ -236,8 +246,10 @@ export default function MenuPublicPage() {
     (m) => m.is_recommended && m.is_available && !cart.items.some((i) => i.menuId === m.id)
   )
 
+  const selectedInCart = selectedItem ? cart.items.find((i) => i.menuId === selectedItem.id) : undefined
+
   return (
-    <div className="min-h-screen" style={{ background: '#fff' }}>
+    <PageFrame>
       {/* Header */}
       <div className="sticky top-0 z-20 px-4 pt-safe pb-3 flex items-center gap-3 bg-white/95 backdrop-blur border-b border-gray-100">
         {searchOpen ? (
@@ -318,7 +330,7 @@ export default function MenuPublicPage() {
 
       {/* Welcome */}
       <div className="px-4 pt-4 pb-1">
-        <h1 className="text-xl font-black text-gray-900">Halo! 👋</h1>
+        <h1 className="text-xl font-black text-gray-900">Halo, {cart.customerName.trim().split(' ')[0]}! 👋</h1>
         <p className="text-xs text-gray-400 mt-1">
           Kamu di <span style={{ color: ACCENT, fontWeight: 800 }}>Meja {data.table.table_number}</span>. Ketuk menu untuk lihat detail.
         </p>
@@ -342,17 +354,19 @@ export default function MenuPublicPage() {
                   const inCart = cart.items.find((i) => i.menuId === item.id)
                   return (
                     <div key={item.id}>
-                      <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 relative">
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <UtensilsCrossed size={24} className="text-gray-300" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-[12.5px] font-extrabold uppercase leading-snug mt-2 min-h-[32px] text-gray-900">{item.name}</p>
-                      <p className="text-sm font-black text-gray-900 mt-0.5">{formatPrice(item.price)}</p>
+                      <button type="button" onClick={() => setSelectedItem(item)} className="block w-full text-left">
+                        <div className="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 relative">
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <UtensilsCrossed size={24} className="text-gray-300" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[12.5px] font-extrabold uppercase leading-snug mt-2 min-h-[32px] text-gray-900">{item.name}</p>
+                        <p className="text-sm font-black text-gray-900 mt-0.5">{formatPrice(item.price)}</p>
+                      </button>
                       <div className="mt-2">
                         {!isOpen ? (
                           <button disabled className="w-full py-2 rounded-full text-xs font-extrabold border-[1.5px] border-gray-200 text-gray-300">
@@ -402,47 +416,143 @@ export default function MenuPublicPage() {
         <p className="text-xs text-gray-300">Silakan hubungi pelayan untuk memesan</p>
       </div>
 
-      {/* Scroll to top */}
-      {showScrollTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed z-20 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg"
-          style={{ background: '#2b2b2b', right: 16, bottom: cartCount > 0 && !cartOpen ? 96 : 24 }}
-        >
-          <ChevronUp size={18} />
-        </button>
-      )}
+      {/* Fixed elements are viewport-anchored, not column-anchored — this wrapper
+          re-centers them over the phone-width column instead of the full viewport. */}
+      <div className="fixed inset-x-0 bottom-0 z-20 flex justify-center pointer-events-none">
+        <div className="relative w-full max-w-md">
+          {/* Scroll to top */}
+          {showScrollTop && (
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="absolute pointer-events-auto z-20 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg"
+              style={{ background: '#2b2b2b', right: 16, bottom: cartCount > 0 && !cartOpen ? 96 : 24 }}
+            >
+              <ChevronUp size={18} />
+            </button>
+          )}
 
-      {/* Cart bottom bar */}
-      {cartCount > 0 && !cartOpen && (
-        <div className="fixed bottom-0 left-0 right-0 pb-safe z-20" style={{ background: ACCENT }}>
-          <button onClick={() => setCartOpen(true)} className="w-full flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-2.5">
-              <div className="relative w-9 h-9 rounded-full flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                <ShoppingBasket size={16} />
-                <span
-                  className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-black"
-                  style={{ background: '#fff', color: ACCENT }}
-                >
-                  {cartCount}
+          {/* Cart bottom bar */}
+          {cartCount > 0 && !cartOpen && (
+            <div className="pointer-events-auto pb-safe" style={{ background: ACCENT }}>
+              <button onClick={() => setCartOpen(true)} className="w-full flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative w-9 h-9 rounded-full flex items-center justify-center text-white" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                    <ShoppingBasket size={16} />
+                    <span
+                      className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[10px] font-black"
+                      style={{ background: '#fff', color: ACCENT }}
+                    >
+                      {cartCount}
+                    </span>
+                  </div>
+                  <div className="text-left text-white">
+                    <p className="text-[10.5px] opacity-85">Total</p>
+                    <p className="text-sm font-black">{formatPrice(cartTotal)}</p>
+                  </div>
+                </div>
+                <span className="px-4 py-2.5 rounded-xl text-xs font-black text-white" style={{ background: 'rgba(0,0,0,0.22)' }}>
+                  CHECK OUT ({cartCount})
                 </span>
-              </div>
-              <div className="text-left text-white">
-                <p className="text-[10.5px] opacity-85">Total</p>
-                <p className="text-sm font-black">{formatPrice(cartTotal)}</p>
-              </div>
+              </button>
             </div>
-            <span className="px-4 py-2.5 rounded-xl text-xs font-black text-white" style={{ background: 'rgba(0,0,0,0.22)' }}>
-              CHECK OUT ({cartCount})
-            </span>
-          </button>
+          )}
         </div>
+      </div>
+
+      {/* Menu item detail sheet */}
+      {selectedItem && (
+        <>
+          <div className="fixed inset-0 z-30" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setSelectedItem(null)} />
+          <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center pointer-events-none">
+            <motion.div
+              drag="y"
+              dragControls={detailDragControls}
+              dragListener={false}
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0, bottom: 1 }}
+              dragSnapToOrigin
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 500) setSelectedItem(null)
+              }}
+              className="pointer-events-auto w-full max-w-md flex flex-col bg-white"
+              style={{ borderRadius: '24px 24px 0 0', border: '1px solid #f1f1f1', maxHeight: '90vh' }}
+            >
+              <div className="relative touch-none flex-shrink-0" onPointerDown={(e) => detailDragControls.start(e)}>
+                <div className="absolute left-1/2 -translate-x-1/2 top-2 rounded-full bg-white/70 z-10" style={{ width: 36, height: 4 }} />
+                <button
+                  onClick={() => setSelectedItem(null)}
+                  className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center bg-white/90 text-gray-600 shadow"
+                >
+                  <X size={15} />
+                </button>
+                <div className="w-full aspect-[4/3] bg-gray-100 overflow-hidden" style={{ borderRadius: '24px 24px 0 0' }}>
+                  {selectedItem.image ? (
+                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <UtensilsCrossed size={32} className="text-gray-300" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="overflow-y-auto px-5 pt-4 pb-safe flex-1">
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-300">{selectedItem.category}</p>
+                <h2 className="text-lg font-black text-gray-900 mt-1">{selectedItem.name}</h2>
+                <p className="text-base font-black mt-1" style={{ color: ACCENT }}>{formatPrice(selectedItem.price)}</p>
+                {selectedItem.description?.trim() ? (
+                  <p className="text-sm text-gray-500 mt-3 leading-relaxed whitespace-pre-line">{selectedItem.description}</p>
+                ) : (
+                  <p className="text-sm text-gray-300 italic mt-3">Belum ada deskripsi untuk menu ini.</p>
+                )}
+
+                <div className="mt-5 pb-5">
+                  {!isOpen ? (
+                    <button disabled className="w-full py-3 rounded-full text-sm font-extrabold border-[1.5px] border-gray-200 text-gray-300">
+                      Tutup
+                    </button>
+                  ) : selectedInCart ? (
+                    <div className="flex items-center justify-between rounded-full border-[1.5px] px-3 py-1.5" style={{ borderColor: ACCENT }}>
+                      <button
+                        onClick={() => cart.updateQty(selectedItem.id, selectedInCart.qty - 1)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                        style={{ background: ACCENT }}
+                      >
+                        <Minus size={15} />
+                      </button>
+                      <span className="text-base font-black text-gray-900">{selectedInCart.qty}</span>
+                      <button
+                        onClick={() => cart.updateQty(selectedItem.id, selectedInCart.qty + 1)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                        style={{ background: ACCENT }}
+                      >
+                        <Plus size={15} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        cart.addItem({ menuId: selectedItem.id, name: selectedItem.name, price: selectedItem.price, image: selectedItem.image })
+                        setSelectedItem(null)
+                      }}
+                      className="w-full py-3 rounded-full text-sm font-extrabold text-white"
+                      style={{ background: ACCENT }}
+                    >
+                      Tambah ke Keranjang
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </>
       )}
 
       {/* Cart drawer */}
       {cartOpen && (
         <>
           <div className="fixed inset-0 z-30" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setCartOpen(false)} />
+          <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center pointer-events-none">
           <motion.div
             drag="y"
             dragControls={dragControls}
@@ -453,7 +563,7 @@ export default function MenuPublicPage() {
             onDragEnd={(_, info) => {
               if (info.offset.y > 100 || info.velocity.y > 500) setCartOpen(false)
             }}
-            className="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-white"
+            className="pointer-events-auto w-full max-w-md flex flex-col bg-white"
             style={{ borderRadius: '24px 24px 0 0', border: '1px solid #f1f1f1', maxHeight: '90vh' }}
           >
             <div className="relative flex items-center justify-between px-5 py-4 touch-none border-b border-gray-100" onPointerDown={(e) => dragControls.start(e)}>
@@ -607,8 +717,9 @@ export default function MenuPublicPage() {
               </div>
             )}
           </motion.div>
+          </div>
         </>
       )}
-    </div>
+    </PageFrame>
   )
 }

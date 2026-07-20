@@ -14,6 +14,7 @@ interface Category {
 interface Menu {
   id: number
   name: string
+  description: string
   price: number
   image: string
   category_id: number
@@ -70,6 +71,7 @@ const labelStyle: React.CSSProperties = {
 
 interface MenuFormState {
   name: string
+  description: string
   price: string
   categoryId: string
   imageFile: File | null
@@ -79,6 +81,7 @@ interface MenuFormState {
 
 const defaultForm: MenuFormState = {
   name: '',
+  description: '',
   price: '',
   categoryId: '',
   imageFile: null,
@@ -130,6 +133,7 @@ export default function MenuPage() {
     setEditMenu(menu)
     setForm({
       name: menu.name,
+      description: menu.description ?? '',
       price: String(menu.price),
       categoryId: String(menu.category_id),
       imageFile: null,
@@ -185,6 +189,7 @@ export default function MenuPage() {
     e.preventDefault()
     const fd = new FormData()
     fd.append('name', form.name.trim())
+    fd.append('description', form.description.trim())
     fd.append('price', form.price)
     fd.append('category_id', form.categoryId)
     fd.append('is_recommended', String(form.isRecommended))
@@ -428,6 +433,19 @@ export default function MenuPage() {
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   required
                   maxLength={200}
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label style={labelStyle}>Deskripsi</label>
+                <textarea
+                  style={{ ...inputStyle, resize: 'none' }}
+                  placeholder="Contoh: Kopi susu dengan gula aren, disajikan dingin"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  rows={3}
+                  maxLength={1000}
                 />
               </div>
 
