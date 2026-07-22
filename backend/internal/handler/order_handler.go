@@ -70,13 +70,17 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		return
 	}
 
-	settings, err := h.settingsRepo.GetStoreHours()
+	today, err := h.settingsRepo.GetTodayHours()
 	if err != nil {
 		response.InternalError(c, "Failed to fetch store hours")
 		return
 	}
-	if !settings.IsOpenNow() {
-		response.Forbidden(c, fmt.Sprintf("Toko sedang tutup. Buka jam %s - %s", settings.OpenTime, settings.CloseTime))
+	if !today.IsOpenNow() {
+		if today.IsClosed {
+			response.Forbidden(c, "Toko tutup hari ini")
+		} else {
+			response.Forbidden(c, fmt.Sprintf("Toko sedang tutup. Buka jam %s - %s", today.OpenTime, today.CloseTime))
+		}
 		return
 	}
 

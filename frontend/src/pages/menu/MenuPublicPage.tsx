@@ -30,13 +30,34 @@ interface CreateOrderResponse {
   id: number
 }
 
-interface StoreHours {
+interface DayHours {
+  day_of_week: number
   open_time: string
   close_time: string
+  is_closed: boolean
+}
+
+interface StoreHours {
+  days: DayHours[]
+  open_time: string
+  close_time: string
+  is_closed: boolean
   is_open: boolean
 }
 
 const ACCENT = '#e8491d'
+
+// day_of_week follows Go's time.Weekday (0=Sunday..6=Saturday); displayed
+// Monday-first since that's the conventional week layout.
+const DAY_LABELS: { value: number; label: string }[] = [
+  { value: 1, label: 'Senin' },
+  { value: 2, label: 'Selasa' },
+  { value: 3, label: 'Rabu' },
+  { value: 4, label: 'Kamis' },
+  { value: 5, label: 'Jumat' },
+  { value: 6, label: 'Sabtu' },
+  { value: 0, label: 'Minggu' },
+]
 
 function fetchPublicMenu(token: string) {
   return api.get<{ data: PublicData }>(`/public/menu/${token}`).then((r) => r.data.data)
@@ -143,10 +164,12 @@ export default function MenuPublicPage() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedItem, setSelectedItem] = useState<MenuItemPublic | null>(null)
+  const [outletInfoOpen, setOutletInfoOpen] = useState(false)
 
   const cart = useCartStore()
   const dragControls = useDragControls()
   const detailDragControls = useDragControls()
+  const outletDragControls = useDragControls()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['public-menu', token],
@@ -250,7 +273,9 @@ export default function MenuPublicPage() {
 
   return (
     <PageFrame>
-      {/* Header */}
+      {/* Header — logo avatar + brand, with a small color dot signaling open/closed inline
+          with the hours (chosen design: "Minimal + Status Dot"). No banner or gradient;
+          the dot + short status word is the only open/closed cue. */}
       <div className="sticky top-0 z-20 px-4 pt-safe pb-3 flex items-center gap-3 bg-white/95 backdrop-blur border-b border-gray-100">
         {searchOpen ? (
           <>
@@ -274,12 +299,38 @@ export default function MenuPublicPage() {
           </>
         ) : (
           <>
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-base flex-shrink-0"
+              style={{ background: ACCENT }}
+            >
+              T
+            </div>
             <div className="flex-1 min-w-0">
               <p className="font-black text-base leading-tight text-gray-900">ThomsCafe</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Meja {data.table.table_number} · Silakan pilih menu
-                {hours && <> · Buka {hours.open_time}-{hours.close_time}</>}
-              </p>
+              <button
+                type="button"
+                onClick={() => setOutletInfoOpen(true)}
+                className="flex items-center gap-1.5 mt-0.5 max-w-full"
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ background: isOpen ? '#16a34a' : '#dc2626' }}
+                />
+                <span className="text-xs text-gray-400 truncate">
+                  {isOpen ? 'Buka' : 'Tutup'} · Meja {data.table.table_number}
+                  {hours && (
+                    <>
+                      {' '}
+                      ·{' '}
+                      {isOpen
+                        ? `Tutup ${hours.close_time}`
+                        : hours.is_closed
+                          ? 'Tutup hari ini'
+                          : `Buka ${hours.open_time}`}
+                    </>
+                  )}
+                </span>
+              </button>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <Link to="/order/history" className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500">
@@ -295,13 +346,6 @@ export default function MenuPublicPage() {
           </>
         )}
       </div>
-
-      {/* Closed banner — not sticky, scrolls away, so it never fights the header/tabs for the sticky offset */}
-      {!isOpen && hours && (
-        <div className="px-4 py-2.5 text-center" style={{ background: '#dc2626' }}>
-          <p className="text-xs font-bold text-white">TUTUP — Buka jam {hours.open_time} WIB</p>
-        </div>
-      )}
 
       {/* Category tabs */}
       <div className="sticky top-[60px] z-10 flex items-stretch bg-white border-b border-gray-100">
@@ -717,6 +761,57 @@ export default function MenuPublicPage() {
               </div>
             )}
           </motion.div>
+          </div>
+        </>
+      )}
+
+      {/* Info Outlet sheet — full weekly schedule, opened from the status bar */}
+      {outletInfoOpen && hours && (
+        <>
+          <div className="fixed inset-0 z-30" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setOutletInfoOpen(false)} />
+          <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center pointer-events-none">
+            <motion.div
+              drag="y"
+              dragControls={outletDragControls}
+              dragListener={false}
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0, bottom: 1 }}
+              dragSnapToOrigin
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 500) setOutletInfoOpen(false)
+              }}
+              className="pointer-events-auto w-full max-w-md flex flex-col bg-white"
+              style={{ borderRadius: '24px 24px 0 0', border: '1px solid #f1f1f1', maxHeight: '85vh' }}
+            >
+              <div className="relative flex items-center justify-between px-5 py-4 touch-none border-b border-gray-100" onPointerDown={(e) => outletDragControls.start(e)}>
+                <div className="absolute left-1/2 -translate-x-1/2 top-2 rounded-full bg-gray-200" style={{ width: 36, height: 4 }} />
+                <p className="text-base font-black text-gray-900">Jam Operasional</p>
+                <button onClick={() => setOutletInfoOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100 text-gray-500">
+                  <X size={15} />
+                </button>
+              </div>
+              <div className="overflow-y-auto px-5 py-4 pb-safe flex-1">
+                <p className="text-sm font-black text-gray-900 mb-3">ThomsCafe</p>
+                <div className="flex flex-col">
+                  {DAY_LABELS.map(({ value, label }) => {
+                    const day = hours.days.find((d) => d.day_of_week === value)
+                    const isToday = value === new Date().getDay()
+                    return (
+                      <div
+                        key={value}
+                        className="flex items-center justify-between py-2.5 border-b border-gray-50"
+                        style={{ color: isToday ? '#111827' : '#6b7280', fontWeight: isToday ? 800 : 400 }}
+                      >
+                        <span className="text-sm">{label}</span>
+                        <span className="text-sm">
+                          {!day || day.is_closed ? 'Tutup' : `${day.open_time} - ${day.close_time}`}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </>
       )}
